@@ -1,0 +1,70 @@
+from rest_framework.permissions import BasePermission
+from .models import User
+from accounts_profile.models import CompanyUser
+
+
+class IsSuperUser(BasePermission):
+    """
+    The request is authenticated  and user is superuser and staff.
+    """
+
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            and request.user.is_staff
+            and request.user.is_superuser
+        )
+
+class IsCustomer(BasePermission):
+    """
+    The request is authenticated  and user is customer.
+    """
+
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            and request.user.user_type == User.UserType.CUSTOMER
+        )
+
+class IsCompanyAdmin(BasePermission):
+    """
+    The request is authenticated  and user is company admin.
+    """
+    
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            and request.user.user_type == User.UserType.COMPANY
+            and (CompanyUser.objects.get(user=request.user)).is_company_admin == True
+        )
+
+class IsCompanyUser(BasePermission):
+    """
+    The request is authenticated  and user is company user.
+    """
+    
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            and request.user.user_type == User.UserType.CUSTOMER
+            and CompanyUser.objects.filter(user=request.user).exists()
+        )
+
+class IsCompanyAdminOrBaseAdmin(BasePermission):
+    """
+    The request is authenticated  and user is company admin or base admin.
+    """
+
+    def has_permission(self, request, view):
+        return bool(
+            (
+                request.user.is_authenticated
+                and request.user.is_staff
+                and request.user.is_superuser
+            ) or 
+            (
+                request.user.is_authenticated
+                and request.user.user_type == User.UserType.COMPANY
+                and (CompanyUser.objects.get(user=request.user)).is_company_admin == True
+            )
+        )

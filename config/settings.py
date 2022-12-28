@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+from datetime import timedelta
+import os
 from pathlib import Path
 from decouple import config
 
@@ -41,10 +43,13 @@ INSTALLED_APPS = [
 
     # installed apps
     'rest_framework',
-    'simple_jwt',
+    'rest_framework_simplejwt',
+    'drf_yasg',
 
     # custom apps
-    'authentication',
+    'accounts',
+    'accounts_profile',
+    'incident',
 ]
 
 MIDDLEWARE = [
@@ -76,6 +81,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+AUTH_USER_MODEL = "accounts.User"
 
 
 # Database
@@ -123,9 +130,40 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
+
+STATICFILES_DIRS = [str(BASE_DIR.joinpath("staticfiles"))]
+
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    )
+}
+
+SWAGGER_SETTINGS = {
+    "USE_SESSION_AUTH": False,
+    "relative_paths": False,
+    "DISPLAY_OPERATION_ID": False,
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"},
+    },
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=3),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
