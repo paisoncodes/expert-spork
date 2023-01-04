@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 class IncidentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Incident
-        field = "__all__"
+        fields = "__all__"
         read_only_fields = [
             "id",
             "created_at",
@@ -17,7 +17,7 @@ class IncidentSerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        field = "__all__"
+        fields = "__all__"
         read_only_fields = [
             "id",
             "created_at",
@@ -27,7 +27,7 @@ class TicketSerializer(serializers.ModelSerializer):
 class TicketReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        field = "__all__"
+        fields = "__all__"
         read_only_fields = [
             "id",
             "created_at",

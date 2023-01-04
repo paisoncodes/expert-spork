@@ -34,7 +34,7 @@ class AddUserSerializer(serializers.ModelSerializer):
     company = serializers.ModelField(model_field=id)
     class Meta:
         model = User
-        fields = ("email",)
+        fields = ("email", "company")
     
     def create(self, **validated_data):
         company = validated_data.pop('company', None)

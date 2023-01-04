@@ -24,7 +24,7 @@ from config.health_check import HealthCheck
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="GoClean APIs",
+        title="AquilineAlerts APIs",
         default_version="v1",
         description="API documentation",
     ),
