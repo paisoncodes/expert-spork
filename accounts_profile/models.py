@@ -46,6 +46,6 @@ class CompanyUser(models.Model):
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
-    if created and instance.user.user_type==User.UserType.COMPANY:
+    if created and instance.user_type==User.UserType.COMPANY:
         company = CompanyProfile.objects.create(user=instance)
         CompanyUser.objects.create(user=instance, company=company,is_company_admin=True)

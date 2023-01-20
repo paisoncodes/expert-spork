@@ -17,7 +17,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ("email", "password", "first_name", "last_name", "state", "city", "lga")
 
-    def create(self, **validated_data):
+    def create(self, validated_data):
         first_name = validated_data.pop("first_name")
         last_name = validated_data.pop("last_name")
         state = validated_data.pop("state")
@@ -31,20 +31,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 class AddUserSerializer(serializers.ModelSerializer):
-    company = serializers.ModelField(model_field=id)
     class Meta:
         model = User
-        fields = ("email", "company")
+        fields = ("email",)
     
-    def create(self, **validated_data):
+    def create(self, validated_data):
         company = validated_data.pop('company', None)
         user = User.objects.add_user(**validated_data)
         user.auth_type = User.AuthType.ADDED
+        user.email_verified = True
+        user.username = user.email.split("@")[0]
         user.save()
 
         UserProfile.objects.create(user=user)
-
-        CompanyUser.objects.create(company=company, user=user)
 
         return user
 

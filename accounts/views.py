@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password, make_password
 
-from accounts_profile.models import CompanyProfile
+from accounts_profile.models import CompanyProfile, CompanyUser
 from .permissions import IsCompanyAdminOrBaseAdmin
 
 # from sms.sendchamp import send_sms
@@ -41,14 +41,14 @@ class CustomerSignUp(GenericAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             user = serializer.save()
-            subject = "Please Verify Your Email"
-            message = render_to_string(
-                "verify_email.html",
-                {
-                    "user": user,
-                    "otp": get_otp(user),
-                },
-            )
+            # subject = "Please Verify Your Email"
+            # message = render_to_string(
+            #     "verify_email.html",
+            #     {
+            #         "user": user,
+            #         "otp": get_otp(user),
+            #     },
+            # )
             # mail = send_email(user, html_string=message, subject=subject)
 
             return Response(
@@ -81,14 +81,14 @@ class CompanySignUp(GenericAPIView):
             user = serializer.save()
             user.user_type = User.UserType.COMPANY
             user.save()
-            subject = "Please Verify Your Email"
-            message = render_to_string(
-                "verify_email.html",
-                {
-                    "user": user,
-                    "otp": get_otp(user),
-                },
-            )
+            # subject = "Please Verify Your Email"
+            # message = render_to_string(
+            #     "verify_email.html",
+            #     {
+            #         "user": user,
+            #         "otp": get_otp(user),
+            #     },
+            # )
             # mail = send_email(user, html_string=message, subject=subject)
 
             return Response(
@@ -113,10 +113,11 @@ class AddUser(GenericAPIView):
 
     def post(self, request):
         data = request.data 
-        data['company'] = CompanyProfile.objects.filter(user=request.user).first()
+        company = CompanyProfile.objects.filter(user=request.user).first()
         serializer = self.serializer_class(data=data)
-        if serializer.is_valid:
-            serializer.save()
+        if serializer.is_valid():
+            user = serializer.save()
+            CompanyUser.objects.create(user=user, company=company)
 
             return Response(
                 {
