@@ -5,6 +5,7 @@ from datetime import date, time
 
 class Incident(BaseModel):
     id = models.BigAutoField(primary_key=True, auto_created=True, serialize=False, verbose_name="ID")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, default=User.get_default_pk)
     name = models.CharField(max_length=225)
     incident_type = models.CharField(max_length=225)
     date = models.DateField()
@@ -18,6 +19,7 @@ class Incident(BaseModel):
     perpetrators = models.TextField()
     nature_of_incident = models.CharField(max_length=100)
     evidence = models.JSONField(default=dict)
+    
 
 class Ticket(BaseModel):
     id = models.BigAutoField(primary_key=True, auto_created=True, serialize=False, verbose_name="ID")

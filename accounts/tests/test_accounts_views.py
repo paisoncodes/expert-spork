@@ -1,8 +1,5 @@
-from accounts_profile.models import CompanyProfile
 from config.test_setup import TestSetUp
 from django.urls import reverse
-from mixer.backend.django import mixer
-from accounts.models import User
 
  
 class TestAccountViews(TestSetUp):

@@ -1,8 +1,6 @@
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.shortcuts import get_object_or_404
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
 from accounts.models import User
 from incident.models import Incident, Ticket, TicketReply
 
@@ -27,6 +25,15 @@ class IncidentView(GenericAPIView):
         else:
             return api_response(serializer.errors, {}, False, 400)
 
+class AllIncidentView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = IncidentSerializer
+
+    def get(self, request):
+        incidents = Incident.objects.all()
+        serializer = self.serializer_class(incidents, many=True)
+        return api_response("Incidents gotten", serializer.data, True, 200)
+
 class IncidentRetrieveUpdateView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = IncidentSerializer
@@ -37,8 +44,7 @@ class IncidentRetrieveUpdateView(GenericAPIView):
         return api_response("Incident retrieved", serializer.data, True, 200)
     
     def put(self, request, incident_id):
-        user = get_object_or_404(User, id=request.user.id)
-        incident, created = Incident.objects.get_or_create(owner=user, id=incident_id)
+        incident, created = Incident.objects.get_or_create(owner=request.user, id=incident_id)
         serializer = self.serializer_class(data=request.data, partial=True)
         if not serializer.is_valid():
             return api_response(serializer.errors, {}, False, 400)
@@ -72,8 +78,7 @@ class TicketRetrieveUpdateView(GenericAPIView):
         return api_response("Ticket gotten", serializer.data, True, 200)
     
     def put(self, request, ticket_id):
-        user = get_object_or_404(User, id=request.user.id)
-        ticket, created = Ticket.objects.get_or_create(owner=user, id=ticket_id)
+        ticket, created = Ticket.objects.get_or_create(owner=request.user, id=ticket_id)
         serializer = self.serializer_class(data=request.data, partial=True)
         if not serializer.is_valid():
             return api_response(serializer.errors, {}, False, 400)
@@ -88,7 +93,7 @@ class ReplyView(GenericAPIView):
     def get(self, request, ticket_id):
         replies = TicketReply.objects.filter(ticket__id=ticket_id)
         serializer = self.serializer_class(replies, many=True)
-        return api_response("Replies gotten", serializer.data, True, 200)
+        return api_response("Replies fetched", serializer.data, True, 200)
     
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -103,8 +108,7 @@ class ReplyUpdateView(GenericAPIView):
     serializer_class = TicketReplySerializer
 
     def put(self, request, reply_id):
-        user = get_object_or_404(User, id=request.user.id)
-        reply, created = TicketReply.objects.get_or_create(user=user, id=reply_id)
+        reply, created = TicketReply.objects.get_or_create(user=request.user, id=reply_id)
         serializer = self.serializer_class(data=request.data, partial=True)
         if not serializer.is_valid():
             return api_response(serializer.errors, {}, False, 400)

@@ -39,6 +39,8 @@ urlpatterns = [
     path('api/v1/auth/', include("accounts.urls")),
     path('api/v1/profile/', include("accounts_profile.urls")),
     path('api/v1/', include("incident.urls")),
+    path('api/v1/', include("subscription.urls")),
+    path('api/v1/', include("role.urls")),
     path("api/v1/health-check", HealthCheck.as_view(), name="health_check"),
 ]
 

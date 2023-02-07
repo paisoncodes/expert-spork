@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'accounts',
     'accounts_profile',
     'incident',
+    'subscription',
+    'role',
 ]
 
 MIDDLEWARE = [

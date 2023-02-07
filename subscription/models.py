@@ -6,10 +6,21 @@ from accounts.models import BaseModel, User
 class Package(BaseModel):
     name = models.CharField(max_length=20)
     description = models.TextField()
-    amount = models.IntegerField(default=0)
-    subscribers = models.IntegerField(default=0)
+    price = models.FloatField(default=0)
+    no_of_subscribers = models.IntegerField(default=0)
+    onwer = models.ForeignKey(User, on_delete=models.CASCADE, default=User.get_default_pk)
+
+    @classmethod
+    def get_default_pk(cls):
+        package, created = cls.objects.get_or_create(
+            name='default package',  
+            description = "Default package" 
+        )
+        return created if created else package
 
 
 class Subscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    type = models.CharField(max_length=255)
+    package = models.ForeignKey(Package, on_delete=models.CASCADE, default=Package.get_default_pk)
+    duration = models.IntegerField(default=30)
+    active = models.BooleanField(default=True)
