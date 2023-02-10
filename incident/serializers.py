@@ -26,7 +26,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
 class TicketReplySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Ticket
+        model = TicketReply
         fields = "__all__"
         read_only_fields = [
             "id",

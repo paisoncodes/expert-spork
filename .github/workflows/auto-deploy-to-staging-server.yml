@@ -1,0 +1,40 @@
+name: Deploy to Linode
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate .env file
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          envkey_DEBUG: ${{ secrets.DEBUG }}
+          envkey_API_DOCUMENTATION_URL: ${{ secrets.API_DOCUMENTATION_URL }}
+
+          file_name: .env
+          fail_on_empty: false
+
+      - name: Build Docker images
+        run: |
+          docker compose build --force-rm --no-cache
+          docker compose run --rm security-alert-api python manage.py makemigrations
+          docker compose run --rm security-alert-api python manage.py migrate
+
+  run:
+    runs-on: self-hosted
+
+    needs:
+      - build
+
+    steps:
+      - name: Run Docker images
+        run: |
+          docker compose up -d --force-recreate --remove-orphans

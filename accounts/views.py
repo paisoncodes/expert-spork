@@ -106,13 +106,13 @@ class CompanySignUp(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-
+# TODO: Companies should be able to edit users
 class AddUser(GenericAPIView):
     permission_classes = [IsCompanyAdminOrBaseAdmin,]
     serializer_class = AddUserSerializer
 
     def post(self, request):
-        data = request.data 
+        data = request.data
         company = CompanyProfile.objects.filter(user=request.user).first()
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():

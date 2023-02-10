@@ -3,7 +3,7 @@ version: "3.9"
 services:
   security-alert-api:
     build: .
-    command: python manage.py runserver
+    command: gunicorn config.wsgi
     volumes:
       - .:/app
     ports:

@@ -68,3 +68,8 @@ class IsCompanyAdminOrBaseAdmin(BasePermission):
                 and (CompanyUser.objects.get(user=request.user)).is_company_admin == True
             )
         )
+
+class IsVerified(BasePermission):
+
+    def has_permission(self, request, view):
+        return bool(request.user.email_verified == True)

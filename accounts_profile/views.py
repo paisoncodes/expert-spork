@@ -49,8 +49,8 @@ class CompanyProfileView(GenericAPIView):
     serializer_class = CompanyProfileSerializer
 
     def get(self, request):
-        user = get_object_or_404(User, pk=request.user.pk)
-        company_profile, created = CompanyProfile.objects.get_or_create(user=user)
+        print("user name: ", request.user.first_name)
+        company_profile, created = CompanyProfile.objects.get_or_create(user=request.user)
         serializer = self.serializer_class(instance=company_profile)
         return Response(
             {

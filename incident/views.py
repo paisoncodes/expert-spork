@@ -30,7 +30,14 @@ class AllIncidentView(GenericAPIView):
     serializer_class = IncidentSerializer
 
     def get(self, request):
+        name = request.GET.get('name', None)
+        date = request.GET.get('date', None)
+        description = request.GET.get('description', None)
+        incident_type = request.GET.get('incident_type', None)
+        location = request.GET.get('location', None)
         incidents = Incident.objects.all()
+        # if name:
+        #     incidents.filter()
         serializer = self.serializer_class(incidents, many=True)
         return api_response("Incidents gotten", serializer.data, True, 200)
 
@@ -51,6 +58,7 @@ class IncidentRetrieveUpdateView(GenericAPIView):
         serializer.update(instance=incident, validated_data=serializer.validated_data)
         return api_response("Incident updated", serializer.data, True, 202)
 
+# TODO Admin should be able to assign tickets to other admins and there should be an history of assignees and ticket owners should be notified of replies on their tickets.
 class TicketView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = TicketSerializer
@@ -68,12 +76,13 @@ class TicketView(GenericAPIView):
         else:
             return api_response(serializer.errors, {}, False, 400)
 
+# TODO: Super admin shouldn't be able to close tickets.
 class TicketRetrieveUpdateView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = TicketSerializer
 
     def get(self, request, ticket_id):
-        incident = get_object_or_404(Incident, id=ticket_id)
+        incident = get_object_or_404(Ticket, id=ticket_id)
         serializer = self.serializer_class(incident)
         return api_response("Ticket gotten", serializer.data, True, 200)
     
@@ -86,11 +95,13 @@ class TicketRetrieveUpdateView(GenericAPIView):
         serializer.update(instance=ticket, validated_data=serializer.validated_data)
         return api_response("Ticket updated", serializer.data, True, 202)
 
+# TODO: Add read receipt for tickets and replies
 class ReplyView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = TicketReplySerializer
 
-    def get(self, request, ticket_id):
+    def get(self, request):
+        ticket_id = request.GET.get('ticket_id')
         replies = TicketReply.objects.filter(ticket__id=ticket_id)
         serializer = self.serializer_class(replies, many=True)
         return api_response("Replies fetched", serializer.data, True, 200)
