@@ -3,7 +3,7 @@ version: "3.9"
 services:
   security-alert-api:
     build: .
-    command: gunicorn config.wsgi
+    command: gunicorn --bind 0.0.0.0:8000 config.wsgi --log-file -
     volumes:
       - .:/app
     ports:
