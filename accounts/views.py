@@ -8,13 +8,15 @@ from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password, make_password
 
-from accounts_profile.models import CompanyProfile, CompanyUser
+from accounts_profile.models import CompanyProfile, CompanyUser, Location, UserProfile
+from accounts_profile.serializers import CompanyUserSerializer, UserProfileSerializer
 from .permissions import IsCompanyAdminOrBaseAdmin
 
 # from sms.sendchamp import send_sms
 from .serializers import (
     AddUserSerializer,
     ChangePasswordSerializer,
+    CompanyRegistrationSerializer,
     LoginSerializer,
     ResendTokenSerializer,
     SendPhoneOtpSerializer,
@@ -24,6 +26,8 @@ from .serializers import (
 )
 from .models import User
 from .otp import get_otp, verify_otp
+
+from utils.utils import api_response, generate_password, send_mail, send_message, validate_phone_number
 # from mail.sendinblue import send_email
 
 
@@ -32,6 +36,7 @@ class CustomerSignUp(GenericAPIView):
     serializer_class = UserRegistrationSerializer
 
     def post(self, request):
+        data = request.data 
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
@@ -41,33 +46,16 @@ class CustomerSignUp(GenericAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             user = serializer.save()
-            # subject = "Please Verify Your Email"
-            # message = render_to_string(
-            #     "verify_email.html",
-            #     {
-            #         "user": user,
-            #         "otp": get_otp(user),
-            #     },
-            # )
-            # mail = send_email(user, html_string=message, subject=subject)
-
-            return Response(
-                {
-                    "message": "Registration Successful, Check email to verify, otp expires in 5mins"
-                    if True
-                    else "Registration Successful, Email Sending failed",
-                    "status": True,
-                },
-                status=status.HTTP_201_CREATED,
-            )
+            subject = "Please Verify Your Email"
+            message = f"Your Aquiline Alerts code is {get_otp(user)}."
+            send_mail(user.email, subject=subject, body=message)
+            data = {'message': "User account creation successful", 'otp': get_otp(user)}
+            return api_response("Registration successful", data, True, 201)
         else:
-            return Response(
-                {"message": serializer.errors, "status": False},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return api_response(serializer.errors, {}, False, 400)
 class CompanySignUp(GenericAPIView):
     permission_classes = [AllowAny]
-    serializer_class = UserRegistrationSerializer
+    serializer_class = CompanyRegistrationSerializer
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -79,34 +67,18 @@ class CompanySignUp(GenericAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             user = serializer.save()
-            user.user_type = User.UserType.COMPANY
-            user.save()
-            # subject = "Please Verify Your Email"
-            # message = render_to_string(
-            #     "verify_email.html",
-            #     {
-            #         "user": user,
-            #         "otp": get_otp(user),
-            #     },
-            # )
-            # mail = send_email(user, html_string=message, subject=subject)
+            
+            subject = "Please Verify Your Email"
 
-            return Response(
-                {
-                    "message": "Registration Successful, Check email to verify, otp expires in 5mins"
-                    if True
-                    else "Registration Successful, Email Sending failed",
-                    "status": True,
-                },
-                status=status.HTTP_201_CREATED,
-            )
+            message = f"Your Aquiline Alerts code is {get_otp(user)}."
+
+            send_mail(user.email, subject=subject, body=message)
+
+            data = {'message': "User account creation successful", 'otp': get_otp(user)}
+            return api_response("Registration successful", data, True, 201)
         else:
-            return Response(
-                {"message": serializer.errors, "status": False},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return api_response(serializer.errors, {}, False, 400)
 
-# TODO: Companies should be able to edit users
 class AddUser(GenericAPIView):
     permission_classes = [IsCompanyAdminOrBaseAdmin,]
     serializer_class = AddUserSerializer
@@ -116,22 +88,46 @@ class AddUser(GenericAPIView):
         company = CompanyProfile.objects.filter(user=request.user).first()
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
-            user = serializer.save()
+            user = User.objects.create(email=serializer.data["email"], user_type=User.AuthType.ADDED)
             CompanyUser.objects.create(user=user, company=company)
-
-            return Response(
-                {
-                    "message": "User added successfully",
-                    "status": True
-                },
-                status=status.HTTP_201_CREATED,
-            )
+            if request.user.user_type == User.UserType.COMPANY:
+                location = Location.objects.get(owner=request.user)
+                user_location = location
+                user_location.owner = user
+                user_location.save()
+            user.set_password(generate_password(company.company_name, CompanyUser.objects.filter(company=company).count()))
+            user.save()
+            return api_response("User added successfully", {}, True, 200)
         else:
+            return api_response(serializer.errors, {}, False, 400)
+
+class CompanyUsersView(GenericAPIView):
+    permission_classes = [IsCompanyAdminOrBaseAdmin,]
+    serializer_class = CompanyUserSerializer
+
+    def get(self, request):
+        company = CompanyProfile.objects.filter(user=request.user).first()
+        users = CompanyUser.objects.filter(company=company)
+        serializer = self.serializer_class(data=users)
+        return api_response("Users fetched", serializer.data, True, 200)
+
+class CompanyUserEditView(GenericAPIView):
+    permission_classes = [IsCompanyAdminOrBaseAdmin,]
+    serializer_class = UserProfileSerializer
+
+    def put(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        serializer = self.serializer_class(data=request.data, partial=True)
+        if not serializer.is_valid():
             return Response(
                 {"message": serializer.errors, "status": False},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+        serializer.update(instance=profile, validated_data=serializer.validated_data)
+        return Response(
+            {"message": "Update Successful", "status": True}, status=status.HTTP_200_OK
+        )
 
 class VerifyOtp(GenericAPIView):
     permission_classes = [AllowAny]
@@ -172,22 +168,16 @@ class ResendOtp(GenericAPIView):
         if serializer.is_valid():
             email = serializer.data["email"]
             user = get_object_or_404(User, email=email)
-            if user.is_active:
+            if user.email_verified:
                 return Response(
                     {"message": "Email already verified", "status": False},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             else:
                 subject = "Please Verify Your Email"
-                message = render_to_string(
-                    "verify_email.html",
-                    {
-                        "user": user,
-                        "otp": get_otp(user),
-                    },
-                )
+                message =  f"Your Aquiline Alerts code is {get_otp(user)}."
 
-                # mail = send_email(user, html_string=message, subject=subject)
+                send_mail(user.email, subject=subject, body=message)
                 return Response(
                     {
                         "message": "Email Sent" if True else "Email not sent",
@@ -243,21 +233,21 @@ class SendPhoneNumberOtp(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         phone_number = serializer.data["phone_number"]
-        user = get_object_or_404(User, pk=request.user.pk)
+        check_phone = validate_phone_number(phone_number)
+        if not check_phone:
+            return api_response("Invalid phone number", {}, False, 400)
+        user = request.user
         user.phone_number = phone_number
+        user.save()
         otp = get_otp(user)
-        message = f"Your GoCLean code is {otp}"
-        # send = send_sms(message=message, phone_number=phone_number)
-        if True:
-            return Response(
-                {"message": "OTP sent to phone number", "status": True},
-                status=status.HTTP_200_OK,
-            )
-        else:
-            return Response(
-                {"message": "Error sending OTP", "status": False},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
+        message = f"Your Aquiline Alerts code is {otp}."
+
+        send_message(phone_number, message, user.email)
+        
+        return Response(
+            {"message": "OTP sent to phone number", "status": True},
+            status=status.HTTP_200_OK,
+        )
 
 
 class Login(GenericAPIView):

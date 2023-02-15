@@ -14,6 +14,8 @@ from datetime import timedelta
 import os
 from pathlib import Path
 from decouple import config
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -52,6 +54,7 @@ INSTALLED_APPS = [
     'incident',
     'subscription',
     'role',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -98,6 +101,27 @@ DATABASES = {
     }
 }
 
+TERMII_API_KEY = config('TERMII_API_KEY')
+
+SENDGRID_API_KEY = config('SENDGRID_API_KEY')
+
+
+sentry_sdk.init(
+    dsn="https://0e89a9d912c24758a3e90208933ecbd0@o4504644881154048.ingest.sentry.io/4504645037129728",
+    integrations=[
+        DjangoIntegration(),
+    ],
+
+
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0,
+
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    # send_default_pii=True
+)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

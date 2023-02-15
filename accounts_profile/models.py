@@ -1,51 +1,77 @@
-from datetime import time
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from accounts.models import BaseModel, User
-from django.contrib.postgres.fields import ArrayField
 
 
+class State(models.Model):
+    state = models.CharField(max_length=225)
+    country = models.CharField(max_length=255, default="Nigeria")
+
+    def __str__(self) -> str:
+        return self.state
+
+class Lga(models.Model):
+    lga = models.CharField(max_length=225)
+    state = models.ForeignKey(State, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.lga
+    
+class City(models.Model):
+    city = models.CharField(max_length=225)
+    lga = models.ForeignKey(Lga, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = "Cities"
+    
+    def __str__(self) -> str:
+        return self.city
+
+def upload_to(instance, filename):
+    return 'images/{filename}'.format(filename=filename)
 class UserProfile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     first_name = models.CharField(max_length=50, null=True, blank=True)
     last_name = models.CharField(max_length=50, null=True, blank=True)
-    state = models.CharField(max_length=100, null=True, blank=True)
-    city = models.CharField(max_length=100, null=True, blank=True)
-    lga = models.CharField(max_length=100, null=True, blank=True)
-    locations = models.JSONField(default=list)
-    kyc = models.URLField(blank=True, null=True)
+    kyc = models.ImageField(upload_to=upload_to, blank=True, null=True)
     disabled = models.BooleanField(default=False)
-    
+    deleted = models.BooleanField(default=False)
 
-OTHER = "OTHER"
-TECHNOLOGY = "TECHNOLOGY"
-TRANSPORT = "TRANSPORT"
-MARKETING = "MARKETING"
-HEALTH = "HEALTH"
+    def __str__(self) -> str:
+        return f"{self.first_name} {self.last_name}"
+
+class Industry(models.Model):
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        verbose_name_plural = 'Industries'
+    
+    def __str__(self) -> str:
+        return self.name
 
 class CompanyProfile(BaseModel):
-    class IndustryType(models.TextChoices):
-        OTHER = OTHER, OTHER
-        TECHNOLOGY = TECHNOLOGY, TECHNOLOGY
-        TRANSPORT = TRANSPORT, TRANSPORT
-        MARKETING = MARKETING, MARKETING
-        HEALTH = HEALTH, HEALTH
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="company")
     company_name = models.CharField(max_length=200, blank=True, null=True)
-    industry = models.CharField(max_length=100, choices=IndustryType.choices, default=IndustryType.OTHER)
-    city = models.CharField(max_length=100, blank=True, null=True)
-    state = models.CharField(max_length=100, blank=True, null=True)
-    lga = models.CharField(max_length=100, blank=True, null=True)
+    industry = models.ForeignKey(Industry, on_delete=models.CASCADE, blank=True, null=True)
 
-class CompanyUser(models.Model):
+    def __str__(self) -> str:
+        return self.company_name
+
+class CompanyUser(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     company = models.ForeignKey(CompanyProfile, on_delete=models.CASCADE)
     is_company_admin = models.BooleanField(default=False)
 
-@receiver(post_save, sender=User)
-def create_profile(sender, instance, created, **kwargs):
-    if created and instance.user_type==User.UserType.COMPANY:
-        company = CompanyProfile.objects.create(user=instance)
-        CompanyUser.objects.create(user=instance, company=company,is_company_admin=True)
+    def __str__(self) -> str:
+        return self.user.email
+
+
+class Location(models.Model):
+    name = models.CharField(max_length=100, blank=True)
+    address = models.CharField(max_length=225, blank=True, null=True)
+    state = models.ForeignKey(State, on_delete=models.CASCADE, blank=True, null=True)
+    lga = models.ForeignKey(Lga, on_delete=models.CASCADE, blank=True, null=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True)
+
+    def __str__(self) -> str:
+        return self.name

@@ -2,6 +2,22 @@ from django.db import models
 from accounts.models import BaseModel, User
 from datetime import date, time
 
+from accounts_profile.models import City, Lga, State
+
+
+
+class IncidentType(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self) -> str:
+        return self.name
+
+class IncidentNature(models.Model):
+    nature = models.CharField(max_length=100)
+
+    def __str__(self) -> str:
+        return self.nature
+    
 
 class Incident(BaseModel):
     id = models.BigAutoField(primary_key=True, auto_created=True, serialize=False, verbose_name="ID")
@@ -11,21 +27,27 @@ class Incident(BaseModel):
     date = models.DateField()
     time = models.TimeField()
     details = models.TextField()
-    location = models.CharField(max_length=500)
+    lga = models.ForeignKey(Lga, on_delete=models.CASCADE)
+    state = models.ForeignKey(State, on_delete=models.CASCADE)
+    # city = models.ForeignKey(City, on_delete=models.CASCADE)
     past_occurrences = models.JSONField(default=dict)
     number_of_victims = models.IntegerField(default=0)
     special_events = models.TextField()
     prior_warnings = models.TextField()
     perpetrators = models.TextField()
-    nature_of_incident = models.CharField(max_length=100)
+    incident_nature = models.ForeignKey(IncidentNature, on_delete=models.CASCADE)
     evidence = models.JSONField(default=dict)
+    company_approved = models.BooleanField(default=False)
+    admin_approved = models.BooleanField(default=False)
     
 
 class Ticket(BaseModel):
     id = models.BigAutoField(primary_key=True, auto_created=True, serialize=False, verbose_name="ID")
     title = models.CharField(max_length=30)
     message = models.TextField()
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ticket_owner")
+    assignee = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    read = models.BooleanField(default=False)
     closed = models.BooleanField(default=False)
 
 class TicketReply(BaseModel):
@@ -33,3 +55,8 @@ class TicketReply(BaseModel):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
+    read = models.BooleanField(default=False)
+
+class TicketAssignee(BaseModel):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    assignee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ticket_assignee")

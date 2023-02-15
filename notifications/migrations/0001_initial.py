@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+import uuid
 
 
 class Migration(migrations.Migration):
@@ -15,23 +16,23 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="Role",
+            name="Notification",
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True,
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
                     ),
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now_add=True, null=True)),
-                ("name", models.CharField(max_length=200)),
-                ("permissions", models.JSONField()),
+                ("title", models.CharField(max_length=225)),
+                ("object_id", models.CharField(max_length=225)),
                 (
-                    "owner",
+                    "user",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         to=settings.AUTH_USER_MODEL,
