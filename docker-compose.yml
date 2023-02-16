@@ -1,19 +1,16 @@
 version: "3.9"
 
 services:
-  migrate-database:
-    build: .
-    command: python manage.py migrate
-    restart: always
   security-alert-api:
     build: .
-    command: gunicorn --bind 0.0.0.0:8000 config.wsgi --log-file -
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             python manage.py migrate &&
+             gunicorn --bind 0.0.0.0:8000 config.wsgi --log-file -"
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     expose:
       - 8000
-    depends_on:
-      - migrate-database
     restart: always
