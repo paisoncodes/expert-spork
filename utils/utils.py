@@ -60,7 +60,9 @@ def send_message(receiver:str, message:str, user_email:str) -> None:
     }
     response = requests.request("POST", url, headers=headers, json=payload)
     response = response.json()
+    # TODO: Remove this after fixing the issue with the sms service
     print("yeeeeeeeeeeeeee", response)
+    
     Messages.objects.create(
         receiver=receiver,
         message=message,
@@ -88,6 +90,7 @@ def send_mail(receiver:str, subject:str, body:str) -> None:
         sent= True if response.status_code == 202 else False,
         response_message=response.body if response.status_code == 202 else "",
         status_code=response.status_code,
-        email = receiver
+        email = receiver,
+        subject=subject,
     )
 

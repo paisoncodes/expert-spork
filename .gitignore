@@ -2,3 +2,4 @@
 Pipfile*
 */__pycache__/*
 *db*
+media

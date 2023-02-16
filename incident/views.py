@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from accounts.models import User
 from accounts_profile.models import CompanyUser, Location
 from incident.models import Incident, Ticket, TicketAssignee, TicketReply
-from accounts.permissions import IsCompanyAdmin, IsCompanyAdminOrBaseAdmin
+from accounts.permissions import IsCompanyAdmin, IsCompanyAdminOrBaseAdmin, IsVerified
 
 from incident.serializers import IncidentSerializer, TicketAssigneeSerializer, TicketReplySerializer, TicketSerializer
 from notifications.models import Notification
@@ -12,7 +12,7 @@ from utils.utils import api_response
 
 
 class IncidentView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsVerified)
     serializer_class = IncidentSerializer
 
     def get(self, request):
@@ -36,7 +36,7 @@ class IncidentView(GenericAPIView):
 
 
 class CompanyIncidents(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsVerified)
     serializer_class = IncidentSerializer
 
     def get(self, request):
@@ -94,7 +94,7 @@ class ApproveGeneralIncident(GenericAPIView):
         return api_response("Incident approved", {}, True, 202)
 
 class AllIncidentView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsVerified)
     serializer_class = IncidentSerializer
 
     def get(self, request):
@@ -128,7 +128,7 @@ class AllIncidentView(GenericAPIView):
         return api_response("Incidents fetched", serializer.data, True, 200)
 
 class IncidentRetrieveUpdateView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsVerified)
     serializer_class = IncidentSerializer
 
     def get(self, request, incident_id):
@@ -144,7 +144,7 @@ class IncidentRetrieveUpdateView(GenericAPIView):
         serializer.update(instance=incident, validated_data=serializer.validated_data)
         return api_response("Incident updated", serializer.data, True, 202)
 
-class AssignTickets(GenericAPIView):
+class AssignTickets(GenericAPIView, IsVerified):
     permission_classes = (IsAdminUser,)
 
     def put(self, request, ticket_id, user_id):
@@ -163,8 +163,9 @@ class TicketAssigneeHistoryView(GenericAPIView):
         history = TicketAssignee.objects.filter(ticket__id=ticket_id)
         serialier = self.serializer_class(history, manay=True)
         return api_response("Ticket assignee history fetched", {}, True, 200)
+    
 class TicketView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsVerified)
     serializer_class = TicketSerializer
 
     def get(self, request):
@@ -181,7 +182,7 @@ class TicketView(GenericAPIView):
             return api_response(serializer.errors, {}, False, 400)
 
 class TicketRetrieveUpdateView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsVerified)
     serializer_class = TicketSerializer
 
     def get(self, request, ticket_id):
@@ -191,7 +192,7 @@ class TicketRetrieveUpdateView(GenericAPIView):
     
     def put(self, request, ticket_id):
         ticket, created = Ticket.objects.get_or_create(owner=request.user, id=ticket_id)
-        if "closed" in request.data.keys() and request.user.is_admin == True:
+        if "closed" in request.data.keys() and request.user.is_superuser == True:
             return api_response("You are not permitted to close a ticket", {}, False, 400)
         serializer = self.serializer_class(data=request.data, partial=True)
         if not serializer.is_valid():
@@ -200,7 +201,7 @@ class TicketRetrieveUpdateView(GenericAPIView):
         return api_response("Ticket updated", serializer.data, True, 202)
 
 class ReplyView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsVerified)
     serializer_class = TicketReplySerializer
 
     def get(self, request):
@@ -221,7 +222,7 @@ class ReplyView(GenericAPIView):
             return api_response(serializer.errors, {}, False, 400)
 
 class ReplyUpdateView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsVerified)
     serializer_class = TicketReplySerializer
 
     def put(self, request, reply_id):

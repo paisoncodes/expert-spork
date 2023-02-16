@@ -8,6 +8,9 @@ class Notification(BaseModel):
     title = models.CharField(max_length=225)
     object_id = models.CharField(max_length=225)
 
+    def __str__(self) -> str:
+        return self.title
+
 class Messages(BaseModel):
     receiver = models.CharField(max_length=20)
     message = models.TextField(default="")
@@ -18,6 +21,9 @@ class Messages(BaseModel):
 
     class Meta:
         verbose_name_plural = "Messages"
+    
+    def __str__(self) -> str:
+        return self.email
 
 class Emails(BaseModel):
     receiver = models.CharField(max_length=20)
@@ -25,7 +31,11 @@ class Emails(BaseModel):
     sent = models.BooleanField(default=False)
     response_message = models.CharField(max_length=525, blank=True, null=True)
     status_code = models.CharField(max_length=225)
+    subject = models.CharField(max_length=225)
     email = models.EmailField()
 
     class Meta:
         verbose_name_plural = "Emails"
+    
+    def __str__(self) -> str:
+        return self.email

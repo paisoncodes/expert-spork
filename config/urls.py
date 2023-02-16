@@ -21,7 +21,7 @@ from rest_framework import permissions
 from decouple import config
 
 from config.health_check import HealthCheck
-from utils.views import count_lgas, populate_state
+from utils.views import count_lgas, populate_industries, populate_state
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -44,11 +44,13 @@ urlpatterns = [
     path('api/v1/profile/', include("accounts_profile.urls")),
     path('api/v1/', include("incident.urls")),
     path('api/v1/', include("subscription.urls")),
+    path('api/v1/', include("notifications.urls")),
     path('api/v1/', include("role.urls")),
     path("api/v1/health-check", HealthCheck.as_view(), name="health_check"),
     path('sentry-debug/', trigger_error),
     path('populate-state/', populate_state),
     path('count-lgas/', count_lgas),
+    path('populate-industry/', populate_industries),
 ]
 
 urlpatterns += [

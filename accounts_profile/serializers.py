@@ -2,13 +2,12 @@ from email.policy import default
 from uuid import uuid4
 from rest_framework import serializers
 
-from accounts_profile.models import City, CompanyProfile, CompanyUser, Lga, Location, State, UserProfile
+from accounts_profile.models import City, CompanyProfile, CompanyUser, Industry, Lga, Location, State, UserProfile
 
 class UserProfileSerializer(serializers.ModelSerializer):
     email = serializers.SerializerMethodField(
         read_only=True, method_name="get_user_email"
     )
-    phone_number = serializers.CharField(required=False)
 
     class Meta:
         model = UserProfile
@@ -17,7 +16,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "id",
             "created_at",
             "updated_at",
+            "disabled",
+            "deleted"
         )
+        read_only_fields = [
+            "phone_number",
+        ]
 
     def get_user_email(self, instance):
         return instance.user.email
@@ -31,6 +35,20 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+
+class IndustrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Industry
+        exclude = (
+            "id",
+            "created_at",
+            "updated_at",
+        )
+
+class KycUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ["kyc"]
 
 class CompanyUserSerializer(serializers.ModelSerializer):
     class Meta:

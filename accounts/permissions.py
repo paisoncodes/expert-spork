@@ -70,6 +70,5 @@ class IsCompanyAdminOrBaseAdmin(BasePermission):
         )
 
 class IsVerified(BasePermission):
-
     def has_permission(self, request, view):
-        return bool(request.user.email_verified == True)
+        return bool(request.user.email_verified == True or request.user.is_superuser == True)

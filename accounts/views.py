@@ -10,7 +10,7 @@ from django.contrib.auth.hashers import check_password, make_password
 
 from accounts_profile.models import CompanyProfile, CompanyUser, Location, UserProfile
 from accounts_profile.serializers import CompanyUserSerializer, UserProfileSerializer
-from .permissions import IsCompanyAdminOrBaseAdmin
+from .permissions import IsCompanyAdminOrBaseAdmin, IsVerified
 
 # from sms.sendchamp import send_sms
 from .serializers import (
@@ -80,7 +80,7 @@ class CompanySignUp(GenericAPIView):
             return api_response(serializer.errors, {}, False, 400)
 
 class AddUser(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin,]
+    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerified]
     serializer_class = AddUserSerializer
 
     def post(self, request):
@@ -102,7 +102,7 @@ class AddUser(GenericAPIView):
             return api_response(serializer.errors, {}, False, 400)
 
 class CompanyUsersView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin,]
+    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerified]
     serializer_class = CompanyUserSerializer
 
     def get(self, request):
@@ -112,7 +112,7 @@ class CompanyUsersView(GenericAPIView):
         return api_response("Users fetched", serializer.data, True, 200)
 
 class CompanyUserEditView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin,]
+    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerified]
     serializer_class = UserProfileSerializer
 
     def put(self, request, user_id):
@@ -193,7 +193,7 @@ class ResendOtp(GenericAPIView):
 
 
 class VerifyPhoneNumberOtp(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsVerified]
     serializer_class = VerifyPhoneOtpSerializer
 
     def post(self, request):
@@ -222,7 +222,7 @@ class VerifyPhoneNumberOtp(GenericAPIView):
 
 
 class SendPhoneNumberOtp(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsVerified]
     serializer_class = SendPhoneOtpSerializer
 
     def post(self, request):
@@ -294,7 +294,7 @@ class Login(GenericAPIView):
             else:
                 return Response(
                     {
-                        "message": "Account not activated, Please verify your email",
+                        "message": "Account not verified, Please verify your email",
                         "status": False,
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -318,7 +318,7 @@ class Login(GenericAPIView):
             
 
 class ChangePassword(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsVerified]
     serializer_class = ChangePasswordSerializer
 
     def post(self, request):
