@@ -1,4 +1,4 @@
-name: Deploy to Linode
+name: Deploy to Server
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
 
       - name: Build Docker images
         run: |
-          docker compose build --force-rm --no-cache
+          docker compose build --force-rm --no-cache --remove-orphans
           docker compose run --rm security-alert-api python manage.py makemigrations
           docker compose run --rm security-alert-api python manage.py migrate
 
