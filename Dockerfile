@@ -14,7 +14,17 @@ RUN pip3 install -r requirements.txt
 
 RUN rm -f tmp.db db.sqlite3
 
-RUN rm -r */migrations
+RUN rm -r accounts/migrations
+
+RUN rm -r accounts_profile/migrations
+
+RUN rm -r incident/migrations
+
+RUN rm -r notifications/migrations
+
+RUN rm -r role/migrations
+
+RUN rm -r subscription/migrations
 
 RUN python manage.py makemigrations accounts
 
