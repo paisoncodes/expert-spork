@@ -2,6 +2,7 @@
 import json
 from rest_framework.decorators import api_view
 import requests
+from accounts.models import User
 
 from accounts_profile.models import Industry, Lga, State
 from utils.utils import api_response
@@ -45,3 +46,17 @@ def populate_industries(request):
         else:
             continue
     return api_response("Industry Populated", {}, True, 200)
+
+@api_view(["POST"])
+def add_superadmin(request):
+    try:
+        email = request.data['email']
+        data = {
+            "email": email,
+            "password": "admin"
+        }
+        user = User.objects.create_superuser(**data)
+        return api_response("Success", {}, True, 201)
+    except Exception as e:
+        return api_response(f'Error: {str(e)}', {}, False, 200)
+
