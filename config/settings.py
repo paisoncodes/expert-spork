@@ -55,12 +55,14 @@ INSTALLED_APPS = [
     'subscription',
     'role',
     'notifications',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -93,6 +95,10 @@ AUTH_USER_MODEL = "accounts.User"
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+
+CORS_ALLOW_ALL_ORIGINS = True
+# If this is used then `CORS_ALLOWED_ORIGINS` will not have any effec
+CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
     'default': {
