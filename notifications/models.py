@@ -31,7 +31,7 @@ class Emails(BaseModel):
     sent = models.BooleanField(default=False)
     response_message = models.CharField(max_length=525, blank=True, null=True)
     status_code = models.CharField(max_length=225)
-    subject = models.CharField(max_length=225)
+    subject = models.CharField(max_length=225, default="")
     email = models.EmailField()
 
     class Meta:
