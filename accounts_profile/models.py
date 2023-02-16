@@ -66,7 +66,7 @@ class CompanyUser(BaseModel):
         return self.user.email
 
 
-class Location(models.Model):
+class Location(BaseModel):
     name = models.CharField(max_length=100, blank=True)
     address = models.CharField(max_length=225, blank=True, null=True)
     state = models.ForeignKey(State, on_delete=models.CASCADE, blank=True, null=True)

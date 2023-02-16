@@ -74,18 +74,18 @@ class StateSerializer(serializers.ModelSerializer):
     class Meta:
         model = State
         exclude = (
-            "id"
+            "id",
         )
 
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
         exclude = (
-            "id"
+            "id",
         )
 class LgaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lga
         exclude = (
-            "id"
+            "id",
         )
