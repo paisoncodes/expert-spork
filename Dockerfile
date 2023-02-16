@@ -14,6 +14,6 @@ RUN pip3 install -r requirements.txt
 
 RUN rm -f tmp.db db.sqlite3
 
-RUN python manage.py migrate
+CMD python manage.py migrate
 
 COPY . /app
