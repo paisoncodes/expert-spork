@@ -3,10 +3,7 @@ version: "3.9"
 services:
   security-alert-api:
     build: .
-    command: >
-      sh -c "python manage.py collectstatic --noinput &&
-             python manage.py migrate &&
-             gunicorn --bind 0.0.0.0:8000 config.wsgi --log-file -"
+    command: gunicorn --bind 0.0.0.0:8000 config.wsgi --log-file -
     volumes:
       - .:/app
     ports:

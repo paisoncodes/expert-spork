@@ -18,13 +18,15 @@ jobs:
           envkey_SECRET_KEY: ${{ secrets.SECRET_KEY }}
           envkey_DEBUG: ${{ secrets.DEBUG }}
           envkey_API_DOCUMENTATION_URL: ${{ secrets.API_DOCUMENTATION_URL }}
+          envkey_TERMII_API_KEY: ${{ secrets.TERMII_API_KEY }}
+          envkey_SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
 
           file_name: .env
           fail_on_empty: false
 
       - name: Build Docker images
         run: |
-          docker compose build --force-rm --no-cache --remove-orphans
+          docker compose build --force-rm --no-cache
           docker compose run --rm security-alert-api python manage.py makemigrations
           docker compose run --rm security-alert-api python manage.py migrate
 
