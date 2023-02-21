@@ -46,10 +46,11 @@ class CustomerSignUp(GenericAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             user = serializer.save()
+            otp = get_otp(user)
             subject = "Please Verify Your Email"
-            message = f"Your Aquiline Alerts code is {get_otp(user)}."
+            message = f"Your Aquiline Alerts code is {otp}."
             send_mail(user.email, subject=subject, body=message)
-            data = {'message': "User account creation successful", 'otp': get_otp(user)}
+            data = {'message': "User account creation successful", 'otp': otp}
             return api_response("Registration successful", data, True, 201)
         else:
             return api_response(serializer.errors, {}, False, 400)
@@ -67,14 +68,16 @@ class CompanySignUp(GenericAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             user = serializer.save()
+
+            otp = get_otp(user)
             
             subject = "Please Verify Your Email"
 
-            message = f"Your Aquiline Alerts code is {get_otp(user)}."
+            message = f"Your Aquiline Alerts code is {otp}."
 
             send_mail(user.email, subject=subject, body=message)
 
-            data = {'message': "User account creation successful", 'otp': get_otp(user)}
+            data = {'message': "User account creation successful", 'otp': otp}
             return api_response("Registration successful", data, True, 201)
         else:
             return api_response(serializer.errors, {}, False, 400)
@@ -96,6 +99,7 @@ class AddUser(GenericAPIView):
                 user_location.owner = user
                 user_location.save()
             user.set_password(generate_password(company.company_name, CompanyUser.objects.filter(company=company).count()))
+            user.email_verified = True
             user.save()
             return api_response("User added successfully", {}, True, 200)
         else:
@@ -176,8 +180,9 @@ class ResendOtp(GenericAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             else:
+                otp = get_otp(user)
                 subject = "Please Verify Your Email"
-                message =  f"Your Aquiline Alerts code is {get_otp(user)}."
+                message =  f"Your Aquiline Alerts code is {otp}."
 
                 send_mail(user.email, subject=subject, body=message)
                 return Response(
