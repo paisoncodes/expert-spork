@@ -5,6 +5,7 @@ import requests
 from accounts.models import User
 
 from accounts_profile.models import Industry, Lga, State
+from incident.models import IncidentType
 from utils.utils import api_response
 
 
@@ -48,6 +49,40 @@ def populate_industries(request):
     return api_response("Industry Populated", {}, True, 200)
 
 @api_view(["POST"])
+def add_industry(request):
+    industry = request.data.get("industry", None)
+    if industry is None:
+        api_response("Invalid industry name")
+    if not Industry.objects.filter(name=industry).exists():
+        Industry.objects.create(name=industry.upper())
+    else:
+        api_response("Industry Already exists", {}, True, 200)
+    return api_response("Industry Added", {}, True, 200)
+
+@api_view(["POST"])
+def add_incident_type(request):
+    incident_type = request.data.get("incident_type", None)
+    if incident_type is None:
+        api_response("Invalid incident type")
+    if not IncidentType.objects.filter(name=incident_type).exists():
+        IncidentType.objects.create(name=incident_type.upper())
+    else:
+        api_response("Incident Type Already exists", {}, True, 200)
+    return api_response("Incident Type Added", {}, True, 200)
+
+@api_view(["POST"])
+def add_incident_nature(request):
+    incident_nature = request.data.get("incident_nature", None)
+    if incident_nature is None:
+        api_response("Invalid incident type")
+    if not IncidentType.objects.filter(name=incident_nature).exists():
+        IncidentType.objects.create(name=incident_nature.upper())
+    else:
+        api_response("Incident Nature Already exists", {}, True, 200)
+    return api_response("Incident Nature Added", {}, True, 200)
+
+
+@api_view(["POST"])
 def add_superadmin(request):
     try:
         email = request.data['email']
@@ -55,7 +90,7 @@ def add_superadmin(request):
             "email": email,
             "password": "admin"
         }
-        user = User.objects.create_superuser(**data)
+        User.objects.create_superuser(**data)
         return api_response("Success", {}, True, 201)
     except Exception as e:
         return api_response(f'Error: {str(e)}', {}, False, 200)

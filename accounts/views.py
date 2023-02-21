@@ -111,7 +111,7 @@ class CompanyUsersView(GenericAPIView):
         serializer = self.serializer_class(data=users)
         return api_response("Users fetched", serializer.data, True, 200)
 
-class CompanyUsersEditView(GenericAPIView):
+class CompanyUserEditView(GenericAPIView):
     permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
     serializer_class = UserProfileSerializer
 
