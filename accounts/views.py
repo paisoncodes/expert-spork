@@ -111,23 +111,22 @@ class CompanyUsersView(GenericAPIView):
         serializer = self.serializer_class(data=users)
         return api_response("Users fetched", serializer.data, True, 200)
 
-class CompanyUserEditView(GenericAPIView):
+class CompanyUsersEditView(GenericAPIView):
     permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerified]
     serializer_class = UserProfileSerializer
 
     def put(self, request, user_id):
-        user = get_object_or_404(User, id=user_id)
-        profile, created = UserProfile.objects.get_or_create(user=user)
+        company = CompanyProfile.objects.filter(user=request.user).first()
+        user = CompanyUser.objects.filter(company=company, user__id=user_id).first()
+        if not user:
+            return api_response("User not found", {}, False, 404)
+        user_profile = get_object_or_404(UserProfile, user=user)
         serializer = self.serializer_class(data=request.data, partial=True)
-        if not serializer.is_valid():
-            return Response(
-                {"message": serializer.errors, "status": False},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        serializer.update(instance=profile, validated_data=serializer.validated_data)
-        return Response(
-            {"message": "Update Successful", "status": True}, status=status.HTTP_200_OK
-        )
+        if serializer.is_valid():
+            serializer.update(instance=user_profile, validated_data=serializer.validated_data)
+            return api_response("Update successful", {}, True, 200)
+        return api_response("An error occured", serializer.errors, False, 400)
+
 
 class VerifyOtp(GenericAPIView):
     permission_classes = [AllowAny]
