@@ -20,12 +20,18 @@ jobs:
           envkey_API_DOCUMENTATION_URL: ${{ secrets.API_DOCUMENTATION_URL }}
           envkey_TERMII_API_KEY: ${{ secrets.TERMII_API_KEY }}
           envkey_SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          envkey_POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          envkey_POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          envkey_POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          envkey_POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          envkey_POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
 
           file_name: .env
           fail_on_empty: false
 
       - name: Build Docker images
         run: |
+          docker system prune -a -f
           docker compose build --force-rm --no-cache
           docker compose run --rm security-alert-api python manage.py makemigrations
           docker compose run --rm security-alert-api python manage.py migrate

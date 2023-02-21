@@ -6,11 +6,13 @@ services:
     volumes: 
       - ./data/db:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
     ports:
-      - 5431:5431
+      - 5432:5432
   security-alert-api:
     build: .
     command: gunicorn --bind 0.0.0.0:8000 config.wsgi --log-file -
@@ -21,6 +23,6 @@ services:
     expose:
       - 8000
     restart: always
-    
+
     depends_on:
       - db

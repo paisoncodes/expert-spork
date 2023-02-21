@@ -4,3 +4,4 @@ Pipfile*
 *db*
 media
 local.yml
+data
