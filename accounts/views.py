@@ -116,8 +116,11 @@ class CompanyUsersEditView(GenericAPIView):
     serializer_class = UserProfileSerializer
 
     def put(self, request, user_id):
-        company = CompanyProfile.objects.filter(user=request.user).first()
-        user = CompanyUser.objects.filter(company=company, user__id=user_id).first()
+        if request.user.is_superuser == True:
+            user = get_object_or_404(User, id=user_id)
+        else:
+            company = CompanyProfile.objects.filter(user=request.user).first()
+            user = CompanyUser.objects.filter(company=company, user__id=user_id).first().user
         if not user:
             return api_response("User not found", {}, False, 404)
         user_profile = get_object_or_404(UserProfile, user=user)
