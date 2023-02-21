@@ -279,22 +279,23 @@ class Login(GenericAPIView):
             if UserProfile.objects.get(user=user).deleted == True or UserProfile.objects.get(user=user).disabled == True:
                 return api_response("Account disabled. Reach out to admin for more details")
             if user.is_active:
+                data = {
+                    "user_id": user.id,
+                    "email": user.email,
+                    "phone_number": user.phone_number
+                }
+
                 refresh = RefreshToken.for_user(user)
-                return Response(
-                    {
-                        "message": "Login Successful",
-                        "data": {
-                            "user": {
-                                "user_id": user.pk,
-                                "email": user.email,
-                            },
-                            "refresh": str(refresh),
-                            "access": str(refresh.access_token),
-                        },
-                        "status": True,
-                    },
-                    status=status.HTTP_200_OK,
-                )
+                data["access_token"] = str(refresh.access_token)
+                user_profile = UserProfile.objects.get(user=user)
+                data["first_name"] = user_profile.first_name
+                data["last_name"] = user_profile.last_name
+                if company_user := CompanyUser.objects.filter(user=user).first():
+                    data["is_company_user"] = True 
+                    data["is_company_admin"] = company_user.is_company_admin
+                    data["company_name"] = company_user.company.company_name
+                return api_response("Login Successful", data, True, 200)
+    
             else:
                 return Response(
                     {
