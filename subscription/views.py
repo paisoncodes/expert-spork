@@ -1,6 +1,6 @@
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from accounts.permissions import IsCompanyAdminOrBaseAdmin, IsVerified
+from accounts.permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
 from subscription.models import Package, Subscription
 
 from subscription.serializers import PackageSerializer, SubscriptionSerializer
@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 
 
 class SubscriptionView(GenericAPIView):
-    permission_classes = [IsAuthenticatedOrReadOnly, IsVerified]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedAndActive]
     serializer_class = SubscriptionSerializer
 
     def get(self, request):
@@ -42,7 +42,7 @@ class SubscriptionView(GenericAPIView):
 
 
 class PackageView(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = PackageSerializer
 
     def get(self, request):
@@ -51,7 +51,7 @@ class PackageView(GenericAPIView):
         return api_response("Packages fetched", serializer.data, True, 200)
     
 class PackageCreateView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerified]
+    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
     serializer_class = PackageSerializer
 
     def post(self, request):
@@ -63,7 +63,7 @@ class PackageCreateView(GenericAPIView):
             return api_response("Package created", serializer.data, True, 201)
 
 class PackageRetrieveUpdateView(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = PackageSerializer
 
     def get(self, request, package_id):

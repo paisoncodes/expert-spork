@@ -1,7 +1,7 @@
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 
-from accounts.permissions import IsCompanyAdminOrBaseAdmin, IsVerified
+from accounts.permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
 from role.models import Role
 from role.serializers import RoleSerializer
 
@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 
 
 class RoleView(GenericAPIView):
-    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerified)
+    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
     serializer_class = RoleSerializer
 
     def get(self, request):
@@ -28,7 +28,7 @@ class RoleView(GenericAPIView):
            return api_response("Roles saved", serializer.data, True, 201)
 
 class RoleRetrieveUpdateView(GenericAPIView):
-    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerified)
+    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
     serializer_class = RoleSerializer
 
     def get(self, request, role_id):

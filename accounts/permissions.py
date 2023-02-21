@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 from .models import User
-from accounts_profile.models import CompanyUser
+from accounts_profile.models import CompanyUser, UserProfile
 
 
 class IsSuperUser(BasePermission):
@@ -69,6 +69,6 @@ class IsCompanyAdminOrBaseAdmin(BasePermission):
             )
         )
 
-class IsVerified(BasePermission):
+class IsVerifiedAndActive(BasePermission):
     def has_permission(self, request, view):
-        return bool(request.user.email_verified == True or request.user.is_superuser == True)
+        return bool(request.user.email_verified == True or request.user.is_superuser == True or UserProfile.objects.get(user=request.user).disabled == False or UserProfile.objects.get(user=request.user).deleted == False)

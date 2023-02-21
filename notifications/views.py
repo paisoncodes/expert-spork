@@ -1,7 +1,7 @@
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 
-from accounts.permissions import IsVerified
+from accounts.permissions import IsVerifiedAndActive
 from notifications.models import Notification
 from notifications.serializers import NotificationSerialzier
 from utils.utils import api_response
@@ -10,7 +10,7 @@ from utils.utils import api_response
 
 
 class NotificationView(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = NotificationSerialzier
 
     def get(self, request):

@@ -10,7 +10,7 @@ from django.contrib.auth.hashers import check_password, make_password
 
 from accounts_profile.models import CompanyProfile, CompanyUser, Location, UserProfile
 from accounts_profile.serializers import CompanyUserSerializer, UserProfileSerializer
-from .permissions import IsCompanyAdminOrBaseAdmin, IsVerified
+from .permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
 
 # from sms.sendchamp import send_sms
 from .serializers import (
@@ -80,7 +80,7 @@ class CompanySignUp(GenericAPIView):
             return api_response(serializer.errors, {}, False, 400)
 
 class AddUser(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerified]
+    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
     serializer_class = AddUserSerializer
 
     def post(self, request):
@@ -102,7 +102,7 @@ class AddUser(GenericAPIView):
             return api_response(serializer.errors, {}, False, 400)
 
 class CompanyUsersView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerified]
+    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
     serializer_class = CompanyUserSerializer
 
     def get(self, request):
@@ -112,7 +112,7 @@ class CompanyUsersView(GenericAPIView):
         return api_response("Users fetched", serializer.data, True, 200)
 
 class CompanyUsersEditView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerified]
+    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
     serializer_class = UserProfileSerializer
 
     def put(self, request, user_id):
@@ -195,7 +195,7 @@ class ResendOtp(GenericAPIView):
 
 
 class VerifyPhoneNumberOtp(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = VerifyPhoneOtpSerializer
 
     def post(self, request):
@@ -224,7 +224,7 @@ class VerifyPhoneNumberOtp(GenericAPIView):
 
 
 class SendPhoneNumberOtp(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = SendPhoneOtpSerializer
 
     def post(self, request):
@@ -276,6 +276,8 @@ class Login(GenericAPIView):
         check = check_password(data["password"], current_password)
 
         if check:
+            if UserProfile.objects.get(user=user).deleted == True or UserProfile.objects.get(user=user).disabled == True:
+                return api_response("Account disabled. Reach out to admin for more details")
             if user.is_active:
                 refresh = RefreshToken.for_user(user)
                 return Response(
@@ -320,7 +322,7 @@ class Login(GenericAPIView):
             
 
 class ChangePassword(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = ChangePasswordSerializer
 
     def post(self, request):

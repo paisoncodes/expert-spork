@@ -7,12 +7,12 @@ from rest_framework import status
 
 from accounts_profile.serializers import CitySerializer, CompanyProfileSerializer, KycUpdateSerializer, LocationSerializer, StateSerializer, UserProfileSerializer
 from accounts.models import User
-from accounts.permissions import IsCompanyAdmin, IsVerified
+from accounts.permissions import IsCompanyAdmin, IsVerifiedAndActive
 from utils.utils import api_response
 
 
 class Profile(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = UserProfileSerializer
 
     def get(self, request):
@@ -46,7 +46,7 @@ class Profile(GenericAPIView):
         )
 
 class KycUpdateView(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = KycUpdateSerializer
 
     def put(self, request):
@@ -64,7 +64,7 @@ class KycUpdateView(GenericAPIView):
         )
 
 class CompanyProfileView(GenericAPIView):
-    permission_classes = [IsCompanyAdmin, IsVerified]
+    permission_classes = [IsCompanyAdmin, IsVerifiedAndActive]
     serializer_class = CompanyProfileSerializer
 
     def get(self, request):
@@ -96,7 +96,7 @@ class CompanyProfileView(GenericAPIView):
         )
 
 class LocationView(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = LocationSerializer
 
     def get(self, request):

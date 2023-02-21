@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from accounts.models import User
 from accounts_profile.models import CompanyUser, Location
 from incident.models import Incident, Ticket, TicketAssignee, TicketReply
-from accounts.permissions import IsCompanyAdmin, IsCompanyAdminOrBaseAdmin, IsVerified
+from accounts.permissions import IsCompanyAdmin, IsVerifiedAndActive
 
 from incident.serializers import IncidentSerializer, TicketAssigneeSerializer, TicketReplySerializer, TicketSerializer
 from notifications.models import Notification
@@ -12,7 +12,7 @@ from utils.utils import api_response
 
 
 class IncidentView(GenericAPIView):
-    permission_classes = (IsAuthenticated, IsVerified)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
     def get(self, request):
@@ -36,7 +36,7 @@ class IncidentView(GenericAPIView):
 
 
 class CompanyIncidents(GenericAPIView):
-    permission_classes = (IsAuthenticated, IsVerified)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
     def get(self, request):
@@ -94,7 +94,7 @@ class ApproveGeneralIncident(GenericAPIView):
         return api_response("Incident approved", {}, True, 202)
 
 class AllIncidentView(GenericAPIView):
-    permission_classes = (IsAuthenticated, IsVerified)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
     def get(self, request):
@@ -128,7 +128,7 @@ class AllIncidentView(GenericAPIView):
         return api_response("Incidents fetched", serializer.data, True, 200)
 
 class IncidentRetrieveUpdateView(GenericAPIView):
-    permission_classes = (IsAuthenticated, IsVerified)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
     def get(self, request, incident_id):
@@ -144,7 +144,7 @@ class IncidentRetrieveUpdateView(GenericAPIView):
         serializer.update(instance=incident, validated_data=serializer.validated_data)
         return api_response("Incident updated", serializer.data, True, 202)
 
-class AssignTickets(GenericAPIView, IsVerified):
+class AssignTickets(GenericAPIView, IsVerifiedAndActive):
     permission_classes = (IsAdminUser,)
 
     def put(self, request, ticket_id, user_id):
@@ -165,7 +165,7 @@ class TicketAssigneeHistoryView(GenericAPIView):
         return api_response("Ticket assignee history fetched", {}, True, 200)
     
 class TicketView(GenericAPIView):
-    permission_classes = (IsAuthenticated, IsVerified)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = TicketSerializer
 
     def get(self, request):
@@ -182,7 +182,7 @@ class TicketView(GenericAPIView):
             return api_response(serializer.errors, {}, False, 400)
 
 class TicketRetrieveUpdateView(GenericAPIView):
-    permission_classes = (IsAuthenticated, IsVerified)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = TicketSerializer
 
     def get(self, request, ticket_id):
@@ -201,7 +201,7 @@ class TicketRetrieveUpdateView(GenericAPIView):
         return api_response("Ticket updated", serializer.data, True, 202)
 
 class ReplyView(GenericAPIView):
-    permission_classes = (IsAuthenticated, IsVerified)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = TicketReplySerializer
 
     def get(self, request):
@@ -222,7 +222,7 @@ class ReplyView(GenericAPIView):
             return api_response(serializer.errors, {}, False, 400)
 
 class ReplyUpdateView(GenericAPIView):
-    permission_classes = (IsAuthenticated, IsVerified)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = TicketReplySerializer
 
     def put(self, request, reply_id):
