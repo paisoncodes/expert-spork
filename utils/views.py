@@ -95,3 +95,13 @@ def add_superadmin(request):
     except Exception as e:
         return api_response(f'Error: {str(e)}', {}, False, 200)
 
+@api_view(["DELETE"])
+def remove_superadmin(request):
+    try:
+        email = request.data['email']
+        
+        User.objects.filter(email=email).delete()
+        return api_response("Success", {}, True, 200)
+    except Exception as e:
+        return api_response(f'Error: {str(e)}', {}, False, 400)
+
