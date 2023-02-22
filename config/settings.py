@@ -101,11 +101,17 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": config("DB_ENGINE"),
+        "NAME": config("POSTGRES_DB"),
+        "USER": config("POSTGRES_USER"),
+        "PASSWORD": config("POSTGRES_PASSWORD"),
+        "HOST": config("POSTGRES_HOST"),
+        "PORT": config("POSTGRES_PORT"),
     }
 }
+
+DATABASES["default"].update({"DISABLE_SERVER_SIDE_CURSORS": True})
 
 TERMII_API_KEY = config('TERMII_API_KEY')
 
