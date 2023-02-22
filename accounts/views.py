@@ -283,7 +283,7 @@ class Login(GenericAPIView):
         if check:
             if UserProfile.objects.get(user=user).deleted == True or UserProfile.objects.get(user=user).disabled == True:
                 return api_response("Account disabled. Reach out to admin for more details")
-            if user.is_active:
+            if user.email_verified:
                 data = {
                     "user_id": user.id,
                     "email": user.email,
@@ -295,6 +295,8 @@ class Login(GenericAPIView):
                 user_profile = UserProfile.objects.get(user=user)
                 data["first_name"] = user_profile.first_name
                 data["last_name"] = user_profile.last_name
+                data["kyc_uploaded"] = user_profile.kyc != None
+                data["is_verified"] = user.email_verified
                 if company_user := CompanyUser.objects.filter(user=user).first():
                     data["is_company_user"] = True 
                     data["is_company_admin"] = company_user.is_company_admin

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from incident.models import Incident, Ticket, TicketAssignee, TicketReply
+from incident.models import Incident, Ticket, TicketAssignee, TicketReply, IncidentType, IncidentNature
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -43,3 +43,13 @@ class TicketReplySerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+class IncidentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IncidentType
+        fields = "__all__"
+
+class IncidentNatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IncidentNature
+        fields = "__all__"

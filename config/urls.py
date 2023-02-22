@@ -21,7 +21,7 @@ from rest_framework import permissions
 from decouple import config
 
 from config.health_check import HealthCheck
-from utils.views import add_incident_nature, add_incident_type, add_industry, add_superadmin, count_lgas, populate_industries, populate_state, remove_superadmin
+from utils.views import add_incident_nature, add_incident_type, add_industry, add_superadmin, count_lgas, get_incident_nature, get_incident_type, get_industries, get_states, populate_industries, populate_state, remove_superadmin
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -56,6 +56,10 @@ urlpatterns = [
     path('add-incident-type/', add_incident_type),
     path('add-incident-nature/', add_incident_nature),
     path('remove-superadmin/', remove_superadmin),
+    path('get-states', get_states),
+    path('get-industries/', get_industries),
+    path('get-incident-type/', get_incident_type),
+    path('get-incident-nature/', get_incident_nature)
 ]
 
 urlpatterns += [
