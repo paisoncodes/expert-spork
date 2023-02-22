@@ -108,28 +108,28 @@ def remove_superadmin(request):
         return api_response(f'Error: {str(e)}', {}, False, 400)
 
 
-api_response(["GET"])
+@api_view(["GET"])
 def get_states(request):
     states = State.objects.all()
     serialzier = StateSerializer(states, many=True)
 
     return api_response("States fetched", serialzier.data, True, 200)
 
-api_response(["GET"])
+@api_view(["GET"])
 def get_industries(request):
     industries = Industry.objects.all()
     serialzier = IndustrySerializer(industries, many=True)
 
     return api_response("Industries fetched", serialzier.data, True, 200)
 
-api_response(["GET"])
+@api_view(["GET"])
 def get_incident_type(request):
     incident_types = IncidentType.objects.all()
     serialzier = IncidentTypeSerializer(incident_types, many=True)
 
     return api_response("Incident Types fetched", serialzier.data, True, 200)
 
-api_response(["GET"])
+@api_view(["GET"])
 def get_incident_nature(request):
     incident_natures = IncidentNature.objects.all()
     serialzier = IncidentNatureSerializer(incident_natures, many=True)
