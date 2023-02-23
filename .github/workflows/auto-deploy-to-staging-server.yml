@@ -33,7 +33,6 @@ jobs:
       - name: Build Docker images
         run: |
           docker compose build --force-rm --no-cache
-          docker compose run --rm security-alert-api python manage.py makemigrations
           docker compose run --rm security-alert-api python manage.py migrate
 
   run:
