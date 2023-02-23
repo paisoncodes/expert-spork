@@ -5,7 +5,7 @@ import requests
 from accounts.models import User
 
 from accounts_profile.models import Industry, Lga, State
-from accounts_profile.serializers import IndustrySerializer, StateSerializer
+from accounts_profile.serializers import IndustrySerializer, LgaSerializer, StateSerializer
 from incident.models import IncidentNature, IncidentType
 from incident.serializers import IncidentNatureSerializer, IncidentTypeSerializer
 from utils.utils import api_response
@@ -116,8 +116,15 @@ def get_states(request):
     return api_response("States fetched", serialzier.data, True, 200)
 
 @api_view(["GET"])
-def get_industries(request):
-    industries = Industry.objects.all()
+def get_lgas(request):
+    lgas = Lga.objects.all()
+    serialzier = LgaSerializer(lgas, many=True)
+
+    return api_response("Lgas fetched", serialzier.data, True, 200)
+
+@api_view(["GET"])
+def get_industries(request, state):
+    industries = Industry.objects.filter(state__state__icontains=state)
     serialzier = IndustrySerializer(industries, many=True)
 
     return api_response("Industries fetched", serialzier.data, True, 200)
