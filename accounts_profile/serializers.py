@@ -41,8 +41,6 @@ class IndustrySerializer(serializers.ModelSerializer):
         model = Industry
         exclude = (
             "id",
-            "created_at",
-            "updated_at",
         )
 
 class KycUpdateSerializer(serializers.ModelSerializer):
