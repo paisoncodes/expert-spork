@@ -13,10 +13,10 @@ services:
     volumes: 
       - ./data/db:/var/lib/postgresql/data
     ports:
-      - 5433:5433
+      - 5434:5434
     expose:
-      - 5433
-    command: -p 5433
+      - 5434
+    command: -p 5434
   security-alert-api:
     build: .
     command: gunicorn --bind 0.0.0.0:8000 config.wsgi --log-file -
