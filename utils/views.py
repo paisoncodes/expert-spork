@@ -9,6 +9,8 @@ from accounts_profile.serializers import IndustrySerializer, LgaSerializer, Stat
 from incident.models import IncidentNature, IncidentType
 from incident.serializers import IncidentNatureSerializer, IncidentTypeSerializer
 from utils.utils import api_response
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 
 
@@ -115,9 +117,15 @@ def get_states(request):
 
     return api_response("States fetched", serialzier.data, True, 200)
 
+state = openapi.Parameter('state', openapi.IN_QUERY,
+                             description="State you want to retrieve lgas from.",
+                             type=openapi.TYPE_STRING, required=True)
+
+@swagger_auto_schema(manual_parameters=[state], method='get')
 @api_view(["GET"])
 def get_lgas(request):
-    lgas = Lga.objects.all()
+    state = request.GET.get('state', None)
+    lgas = Lga.objects.filter(state__state__icontains=state)
     serialzier = LgaSerializer(lgas, many=True)
 
     return api_response("Lgas fetched", serialzier.data, True, 200)

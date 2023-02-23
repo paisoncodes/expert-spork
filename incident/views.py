@@ -9,14 +9,67 @@ from accounts.permissions import IsCompanyAdmin, IsVerifiedAndActive
 from incident.serializers import IncidentSerializer, TicketAssigneeSerializer, TicketReplySerializer, TicketSerializer
 from notifications.models import Notification
 from utils.utils import api_response
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
+
+state = openapi.Parameter('state', openapi.IN_QUERY,
+                             description="State you want to filter by.",
+                             type=openapi.TYPE_STRING)
+lga = openapi.Parameter('lga', openapi.IN_QUERY,
+                             description="Lga you want to filter by.",
+                             type=openapi.TYPE_STRING)
+description = openapi.Parameter('description', openapi.IN_QUERY,
+                             description="Description you want to filter by.",
+                             type=openapi.TYPE_STRING)
+name = openapi.Parameter('name', openapi.IN_QUERY,
+                             description="Incident name you want to filter by.",
+                             type=openapi.TYPE_STRING)
+date = openapi.Parameter('date', openapi.IN_QUERY,
+                             description="Date you want to filter by.",
+                             type=openapi.TYPE_STRING)
+incident_type = openapi.Parameter('incident type', openapi.IN_QUERY,
+                             description="Incident type you want to filter by.",
+                             type=openapi.TYPE_STRING)
+incident_nature = openapi.Parameter('incident nature', openapi.IN_QUERY,
+                             description="Incident nature you want to filter by.",
+                             type=openapi.TYPE_STRING)
 
 class IncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
+    @swagger_auto_schema(manual_parameters=[state, lga, name, description, date, incident_nature, incident_type])
     def get(self, request):
+
+        name = request.GET.get('name', None)
+        date = request.GET.get('date', None)
+        description = request.GET.get('description', None)
+        incident_type = request.GET.get('incident_type', None)
+        incident_nature = request.GET.get('incident_nature', None)
+        state = request.GET.get('state', None)
+        # city = request.GET.get('city', None)  
+        lga = request.GET.get('lga', None)
+
         incidents = Incident.objects.filter(owner=request.user)
+
+        if name:
+            incidents = incidents.filter(name__icontains=name)
+        if date:
+            incidents = incidents.filter(date=date)
+        if description:
+            incidents = incidents.filter(description__icontains=description)
+        if incident_type:
+            incidents = incidents.filter(incident_type__name__icontains=incident_type)
+        if incident_nature:
+            incidents = incidents.filter(incident_nature__name__icontains=incident_nature)
+        if lga:
+            incidents = incidents.filter(lga__lga__icontains=lga)
+        if state:
+            incidents = incidents.filter(state__state__icontains=state)
+        # if city:
+        #     incidents = incidents.filter(city__city__icontains=city)
+
         serializer = self.serializer_class(incidents, many=True)
         return api_response("Incidents gotten", serializer.data, True, 200)
 
@@ -39,6 +92,7 @@ class CompanyIncidents(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
+    @swagger_auto_schema(manual_parameters=[state, lga, name, description, date, incident_nature, incident_type])
     def get(self, request):
         name = request.GET.get('name', None)
         date = request.GET.get('date', None)
@@ -97,6 +151,7 @@ class AllIncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
+    @swagger_auto_schema(manual_parameters=[state, lga, name, description, date, incident_nature, incident_type])
     def get(self, request):
         name = request.GET.get('name', None)
         date = request.GET.get('date', None)

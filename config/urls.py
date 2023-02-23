@@ -57,7 +57,7 @@ urlpatterns = [
     path('add-incident-nature/', add_incident_nature),
     path('remove-superadmin/', remove_superadmin),
     path('get-states/', get_states),
-    path('get-lgas/<str:state>/', get_lgas),
+    path('get-lgas/', get_lgas),
     path('get-industries/', get_industries),
     path('get-incident-type/', get_incident_type),
     path('get-incident-nature/', get_incident_nature)
