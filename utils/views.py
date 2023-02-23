@@ -131,7 +131,7 @@ def get_lgas(request):
     return api_response("Lgas fetched", serialzier.data, True, 200)
 
 @api_view(["GET"])
-def get_industries(request, state):
+def get_industries(request):
     industries = Industry.objects.filter(state__state__icontains=state)
     serialzier = IndustrySerializer(industries, many=True)
 
