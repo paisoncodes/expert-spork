@@ -108,7 +108,7 @@ class LocationView(GenericAPIView):
     def post(self, request):
         user = request.user
         data = request.data
-        data["owner"] = user
+        data["owner"] = user.id
 
         serializer = self.serializer_class(data=data)
 

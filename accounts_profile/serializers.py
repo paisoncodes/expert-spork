@@ -60,7 +60,6 @@ class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location 
         exclude = (
-            "owner",
             "id",
             "created_at",
             "updated_at",

@@ -11,6 +11,13 @@ class IncidentType(models.Model):
 
     def __str__(self) -> str:
         return self.name
+    
+    @classmethod
+    def get_default_pk(cls):
+        name, created = cls.objects.get_or_create(
+            name='default type',   
+        )
+        return created if created else name
 
 class IncidentNature(models.Model):
     nature = models.CharField(max_length=100)
@@ -23,20 +30,20 @@ class Incident(BaseModel):
     id = models.BigAutoField(primary_key=True, auto_created=True, serialize=False, verbose_name="ID")
     owner = models.ForeignKey(User, on_delete=models.CASCADE, default=User.get_default_pk)
     name = models.CharField(max_length=225)
-    incident_type = models.CharField(max_length=225)
-    date = models.DateField()
-    time = models.TimeField()
-    details = models.TextField()
+    incident_type = models.ForeignKey(IncidentType, on_delete=models.CASCADE, default=IncidentType.get_default_pk)
+    date = models.DateField(null=True, blank=True)
+    time = models.TimeField(null=True, blank=True)
+    details = models.TextField(null=True, blank=True)
     lga = models.ForeignKey(Lga, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
     # city = models.ForeignKey(City, on_delete=models.CASCADE)
-    past_occurrences = models.JSONField(default=dict)
+    past_occurrences = models.JSONField(default=dict, null=True, blank=True)
     number_of_victims = models.IntegerField(default=0)
-    special_events = models.TextField()
-    prior_warnings = models.TextField()
-    perpetrators = models.TextField()
+    special_events = models.TextField(blank=True, null=True)
+    prior_warnings = models.TextField(blank=True, null =True)
+    perpetrators = models.TextField(null=True, blank=True)
     incident_nature = models.ForeignKey(IncidentNature, on_delete=models.CASCADE)
-    evidence = models.JSONField(default=dict)
+    evidence = models.JSONField(default=dict, null=True, blank=True)
     company_approved = models.BooleanField(default=False)
     admin_approved = models.BooleanField(default=False)
     
