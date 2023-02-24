@@ -26,7 +26,7 @@ class Messages(BaseModel):
         return self.email
 
 class Emails(BaseModel):
-    receiver = models.CharField(max_length=20)
+    receiver = models.EmailField()
     message = models.TextField(default="")
     sent = models.BooleanField(default=False)
     response_message = models.CharField(max_length=525, blank=True, null=True)

@@ -6,10 +6,13 @@ import requests
 from django.conf import settings
 import sendgrid
 from sendgrid.helpers.mail import *
-from accounts_profile.models import Lga, State
 
 from notifications.models import Messages, Emails
-from rest_framework.decorators import api_view
+
+from subscription.models import Subscription
+
+from datetime import datetime
+
 
 
 def random_with_n_digits(n=12):
@@ -94,3 +97,12 @@ def send_mail(receiver:str, subject:str, body:str) -> None:
         subject=subject,
     )
 
+from django.db import models
+from django.db.models.functions import ExtractMonth
+
+# queryset = Subscription.objects.filter(id=1).annotate(
+#     diff=models.ExpressionWrapper(
+#         models.F('created_at') - datetime.now(), output_field=models.DurationField())
+#     ).annotate(months=ExtractMonth('diff'))
+
+# print(queryset)

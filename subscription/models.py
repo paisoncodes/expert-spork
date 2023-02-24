@@ -1,14 +1,15 @@
+from datetime import datetime
 from django.db import models
 from accounts.models import BaseModel, User
-
 # Create your models here.
 
 class Package(BaseModel):
     name = models.CharField(max_length=20)
     description = models.TextField()
     price = models.FloatField(default=0)
-    no_of_subscribers = models.IntegerField(default=0)
-    onwer = models.ForeignKey(User, on_delete=models.CASCADE, default=User.get_default_pk)
+    max_no_of_users = models.IntegerField(default=0)
+    duration = models.IntegerField(default=1, help_text="Duration of the package in months")
+    
 
     @classmethod
     def get_default_pk(cls):
@@ -22,5 +23,6 @@ class Package(BaseModel):
 class Subscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     package = models.ForeignKey(Package, on_delete=models.CASCADE, default=Package.get_default_pk)
-    duration = models.IntegerField(default=30)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=datetime.now())
+    

@@ -30,8 +30,8 @@ def upload_to(instance, filename):
     return 'images/{filename}'.format(filename=filename)
 class UserProfile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    first_name = models.CharField(max_length=50, null=True, blank=True)
-    last_name = models.CharField(max_length=50, null=True, blank=True)
+    first_name = models.CharField(max_length=225, null=True, blank=True)
+    last_name = models.CharField(max_length=225, null=True, blank=True)
     kyc = models.ImageField(upload_to=upload_to, blank=True, null=True)
     disabled = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
