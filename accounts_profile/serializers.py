@@ -39,9 +39,7 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
 class IndustrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Industry
-        exclude = (
-            "id",
-        )
+        fields = "__all__"
 
 class KycUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -71,9 +69,7 @@ class LocationSerializer(serializers.ModelSerializer):
 class StateSerializer(serializers.ModelSerializer):
     class Meta:
         model = State
-        exclude = (
-            "id",
-        )
+        fields = "__all__"
 
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
@@ -84,6 +80,4 @@ class CitySerializer(serializers.ModelSerializer):
 class LgaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lga
-        exclude = (
-            "id",
-        )
+        fields = "__all__"
