@@ -295,7 +295,7 @@ class Login(GenericAPIView):
                 user_profile = UserProfile.objects.get(user=user)
                 data["first_name"] = user_profile.first_name
                 data["last_name"] = user_profile.last_name
-                data["kyc_uploaded"] = user_profile.kyc != None
+                data["kyc_uploaded"] = True if user_profile.kyc else False
                 data["is_verified"] = user.email_verified
                 if company_user := CompanyUser.objects.filter(user=user).first():
                     data["is_company_user"] = True 
