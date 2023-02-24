@@ -93,27 +93,39 @@ class AddUser(GenericAPIView):
         if serializer.is_valid():
             user = User.objects.create(email=serializer.data["email"], user_type=User.AuthType.ADDED)
             CompanyUser.objects.create(user=user, company=company)
+            UserProfile.objects.create(user=user)
             if request.user.user_type == User.UserType.COMPANY:
-                location = Location.objects.get(owner=request.user)
-                user_location = location
-                user_location.owner = user
-                user_location.save()
-            user.set_password(generate_password(company.company_name, CompanyUser.objects.filter(company=company).count()))
+                locations = Location.objects.filter(owner=request.user)
+                for location in locations:
+                    Location.objects.create(owner=user, name=location.name, address=location.address, state=location.state, lga=location.lga)
+
+            password = generate_password(company.company_name, CompanyUser.objects.filter(company=company).count())
+            user.set_password(password)
             user.email_verified = True
             user.save()
+            message = f"An account has been created for you on Aquiline Alerts by {company.company_name}. Below are your account details: \n    {user.email}\n    {password}"
+            send_mail(user.email, "Account creation", message)
             return api_response("User added successfully", {}, True, 200)
         else:
             return api_response(serializer.errors, {}, False, 400)
 
 class CompanyUsersView(GenericAPIView):
     permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
-    serializer_class = CompanyUserSerializer
+    serializer_class = UserProfileSerializer
 
     def get(self, request):
         company = CompanyProfile.objects.filter(user=request.user).first()
-        users = CompanyUser.objects.filter(company=company)
-        serializer = self.serializer_class(data=users)
-        return api_response("Users fetched", serializer.data, True, 200)
+        company_users = CompanyUser.objects.filter(company=company)
+        data = {
+            "company_name": company.company_name,
+            "users": []
+        }
+        for company_user in company_users:
+            user_profile = UserProfile.objects.filter(user__email=company_user).first()
+            user_data = (self.serializer_class(user_profile)).data
+            user_data["id"] = user_profile.user.id
+            data["users"].append(user_data)
+        return api_response("Users fetched", data, True, 200)
 
 class CompanyUserEditView(GenericAPIView):
     permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
@@ -133,6 +145,17 @@ class CompanyUserEditView(GenericAPIView):
             serializer.update(instance=user_profile, validated_data=serializer.validated_data)
             return api_response("Update successful", {}, True, 200)
         return api_response("An error occured", serializer.errors, False, 400)
+
+    def delete(self, request, user_id):
+        if request.user.is_superuser == True:
+            user = get_object_or_404(User, id=user_id)
+        else:
+            company = CompanyProfile.objects.filter(user=request.user).first()
+            user = CompanyUser.objects.filter(company=company, user__id=user_id).first().user
+        if not user:
+            return api_response("User not found", {}, False, 404)
+        user.delete()
+        return api_response("Delete successful", {}, True, 200)
 
 
 class VerifyOtp(GenericAPIView):
@@ -282,7 +305,7 @@ class Login(GenericAPIView):
 
         if check:
             if UserProfile.objects.get(user=user).deleted == True or UserProfile.objects.get(user=user).disabled == True:
-                return api_response("Account disabled. Reach out to admin for more details")
+                return api_response("Account disabled. Reach out to admin for more details", {}, False, 400)
             if user.email_verified:
                 data = {
                     "user_id": user.id,

@@ -133,7 +133,7 @@ class CompanyIncidents(GenericAPIView):
 class ApproveCompanyIncident(GenericAPIView):
     permission_classes = (IsCompanyAdmin,)
 
-    def put(self, request, incident_id):
+    def get(self, request, incident_id):
         incident = get_object_or_404(Incident, id=incident_id)
         incident.company_approved = True
         incident.save()
@@ -142,7 +142,7 @@ class ApproveCompanyIncident(GenericAPIView):
 
 class ApproveGeneralIncident(GenericAPIView):
     permission_classes = (IsAdminUser,)
-    def put(self, request, incident_id):
+    def get(self, request, incident_id):
         incident = get_object_or_404(Incident, id=incident_id)
         incident.admin_approved = True
         incident.save()

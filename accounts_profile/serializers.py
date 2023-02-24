@@ -16,7 +16,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "id",
             "created_at",
             "updated_at",
-            "disabled",
             "deleted"
         )
         read_only_fields = [
