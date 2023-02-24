@@ -26,12 +26,18 @@ search = openapi.Parameter('name', openapi.IN_QUERY,
 date = openapi.Parameter('date', openapi.IN_QUERY,
                              details="Date you want to filter by.",
                              type=openapi.TYPE_STRING)
-incident_type = openapi.Parameter('incident type', openapi.IN_QUERY,
+incident_type = openapi.Parameter('incident_type', openapi.IN_QUERY,
                              details="Incident type you want to filter by.",
                              type=openapi.TYPE_STRING)
-incident_nature = openapi.Parameter('incident nature', openapi.IN_QUERY,
+incident_nature = openapi.Parameter('incident_nature', openapi.IN_QUERY,
                              details="Incident nature you want to filter by.",
                              type=openapi.TYPE_STRING)
+# incident_nature = openapi.Parameter('incident nature', openapi.IN_QUERY,
+#                              details="Incident nature you want to filter by.",
+#                              type=openapi.TYPE_STRING)
+ticket_id = openapi.Parameter('ticket_id', openapi.IN_QUERY,
+                             details="ID of ticket you want to retrieve replies for.",
+                             type=openapi.TYPE_STRING, required=True)
 
 class IncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
@@ -222,7 +228,11 @@ class TicketView(GenericAPIView):
         return api_response("Tickets gotten", serializer.data, True, 200)
     
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        if "title" not in request.data.keys() or "message" not in request.data.keys():
+            return api_response("Please add title and message", {}, False, 400)
+        data = request.data
+        data["owner"] = request.user.id
+        serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save()
             return api_response("Ticket registered successfully", serializer.data, True, 201)
@@ -252,6 +262,7 @@ class ReplyView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = TicketReplySerializer
 
+    @swagger_auto_schema(manual_parameters=[ticket_id])
     def get(self, request):
         ticket_id = request.GET.get('ticket_id')
         replies = TicketReply.objects.filter(ticket__id=ticket_id)
@@ -259,10 +270,12 @@ class ReplyView(GenericAPIView):
         return api_response("Replies fetched", serializer.data, True, 200)
     
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        data = request.data
+        data["owner"] = request.user.id
+        serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save()
-            ticket=serializer.data.ticket
+            ticket= Ticket.objects.get(id=serializer.data["ticket"])
             if ticket.owner != request.user:
                 Notification.objects.create(title="Ticket has been responded to",user=ticket.owner, object_id=ticket.id)
             return api_response("Reply saved", serializer.data, True, 201)

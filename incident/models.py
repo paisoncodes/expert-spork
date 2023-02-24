@@ -50,18 +50,18 @@ class Incident(BaseModel):
 
 class Ticket(BaseModel):
     id = models.BigAutoField(primary_key=True, auto_created=True, serialize=False, verbose_name="ID")
-    title = models.CharField(max_length=30)
-    message = models.TextField()
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ticket_owner")
+    title = models.CharField(max_length=30, blank=True)
+    message = models.TextField(blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ticket_owner", blank=True)
     assignee = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     read = models.BooleanField(default=False)
     closed = models.BooleanField(default=False)
 
 class TicketReply(BaseModel):
     id = models.BigAutoField(primary_key=True, auto_created=True, serialize=False, verbose_name="ID")
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    message = models.TextField()
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True)
+    message = models.TextField(blank=True)
     read = models.BooleanField(default=False)
 
 class TicketAssignee(BaseModel):
