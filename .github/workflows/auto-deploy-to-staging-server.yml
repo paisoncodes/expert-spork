@@ -33,7 +33,7 @@ jobs:
       - name: Build Docker images
         run: |
           docker compose build --force-rm --no-cache
-          docker stop $(docker ps -q)
+          docker-compose down
           docker rm -v aquilinealerts-backend-api-db-1
           docker compose run --rm security-alert-api python manage.py makemigrations
           docker compose run --rm security-alert-api python manage.py migrate
