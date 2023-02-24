@@ -11,40 +11,37 @@ from notifications.models import Notification
 from utils.utils import api_response
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from django.db.models import Q
 
 
 state = openapi.Parameter('state', openapi.IN_QUERY,
-                             description="State you want to filter by.",
+                             details="State you want to filter by.",
                              type=openapi.TYPE_STRING)
 lga = openapi.Parameter('lga', openapi.IN_QUERY,
-                             description="Lga you want to filter by.",
+                             details="Lga you want to filter by.",
                              type=openapi.TYPE_STRING)
-description = openapi.Parameter('description', openapi.IN_QUERY,
-                             description="Description you want to filter by.",
-                             type=openapi.TYPE_STRING)
-name = openapi.Parameter('name', openapi.IN_QUERY,
-                             description="Incident name you want to filter by.",
+search = openapi.Parameter('name', openapi.IN_QUERY,
+                             details="Parameter you want to filter by.",
                              type=openapi.TYPE_STRING)
 date = openapi.Parameter('date', openapi.IN_QUERY,
-                             description="Date you want to filter by.",
+                             details="Date you want to filter by.",
                              type=openapi.TYPE_STRING)
 incident_type = openapi.Parameter('incident type', openapi.IN_QUERY,
-                             description="Incident type you want to filter by.",
+                             details="Incident type you want to filter by.",
                              type=openapi.TYPE_STRING)
 incident_nature = openapi.Parameter('incident nature', openapi.IN_QUERY,
-                             description="Incident nature you want to filter by.",
+                             details="Incident nature you want to filter by.",
                              type=openapi.TYPE_STRING)
 
 class IncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, name, description, date, incident_nature, incident_type])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, incident_type])
     def get(self, request):
 
-        name = request.GET.get('name', None)
+        search = request.GET.get('search', None)
         date = request.GET.get('date', None)
-        description = request.GET.get('description', None)
         incident_type = request.GET.get('incident_type', None)
         incident_nature = request.GET.get('incident_nature', None)
         state = request.GET.get('state', None)
@@ -53,12 +50,10 @@ class IncidentView(GenericAPIView):
 
         incidents = Incident.objects.filter(owner=request.user)
 
-        if name:
-            incidents = incidents.filter(name__icontains=name)
+        if search:
+            incidents = incidents.filter(Q(name__icontains=search) | Q(details__icontains=search))
         if date:
             incidents = incidents.filter(date=date)
-        if description:
-            incidents = incidents.filter(description__icontains=description)
         if incident_type:
             incidents = incidents.filter(incident_type__name__icontains=incident_type)
         if incident_nature:
@@ -74,15 +69,19 @@ class IncidentView(GenericAPIView):
         return api_response("Incidents gotten", serializer.data, True, 200)
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        data = request.data
+        data["owner"] = request.user.id
+        serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save()
-            lga = serializer.data.lga
-            state = serializer.data.state
+            lga = serializer.data["lga"]
+            state = serializer.data["state"]
             # city = serializer.data.city
             if user_locations := Location.objects.filter(lga=lga, state=state): #, city=city):
                 for location in user_locations:
-                    Notification.objects.create(title=f"Incident reported at registered location, {location.name}", user=location.owner, object_id=serializer.data.id)
+                    if location.owner == request.user:
+                        Notification.objects.create(title=f"You reported an incident, {location.name}", user=location.owner, object_id=serializer.data["id"])
+                    Notification.objects.create(title=f"Incident reported at registered location, {location.name}", user=location.owner, object_id=serializer.data["id"])
             return api_response("Incident created successfully",serializer.data, True, 201)
         else:
             return api_response(serializer.errors, {}, False, 400)
@@ -92,11 +91,10 @@ class CompanyIncidents(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, name, description, date, incident_nature, incident_type])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, incident_type])
     def get(self, request):
-        name = request.GET.get('name', None)
+        search = request.GET.get('search', None)
         date = request.GET.get('date', None)
-        description = request.GET.get('description', None)
         incident_type = request.GET.get('incident_type', None)
         incident_nature = request.GET.get('incident_nature', None)
         state = request.GET.get('state', None)
@@ -109,12 +107,10 @@ class CompanyIncidents(GenericAPIView):
         incidents = Incident.objects.filter(owner__id__in=company_users, company_approved=True)
 
         serializer = self.serializer_class(incidents, many=True)
-        if name:
-            incidents = incidents.filter(name__icontains=name)
+        if search:
+            incidents = incidents.filter(Q(name__icontains=search) | Q(details__icontains=search))
         if date:
             incidents = incidents.filter(date=date)
-        if description:
-            incidents = incidents.filter(description__icontains=description)
         if incident_type:
             incidents = incidents.filter(incident_type__name__icontains=incident_type)
         if incident_nature:
@@ -151,23 +147,20 @@ class AllIncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, name, description, date, incident_nature, incident_type])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, incident_type])
     def get(self, request):
-        name = request.GET.get('name', None)
+        search = request.GET.get('search', None)
         date = request.GET.get('date', None)
-        description = request.GET.get('description', None)
         incident_type = request.GET.get('incident_type', None)
         incident_nature = request.GET.get('incident_nature', None)
         state = request.GET.get('state', None)
         # city = request.GET.get('city', None)
         lga = request.GET.get('lga', None)
         incidents = Incident.objects.filter(admin_approved=True)
-        if name:
-            incidents = incidents.filter(name__icontains=name)
+        if search:
+            incidents = incidents.filter(Q(name__icontains=search) | Q(details__icontains=search))
         if date:
             incidents = incidents.filter(date=date)
-        if description:
-            incidents = incidents.filter(description__icontains=description)
         if incident_type:
             incidents = incidents.filter(incident_type__name__icontains=incident_type)
         if incident_nature:

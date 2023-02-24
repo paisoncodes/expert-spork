@@ -26,10 +26,8 @@ def populate_state(request):
                 for lga in lgas["lgas"]:
                     if not Lga.objects.filter(lga=lga, state=state_).exists():
                         Lga.objects.create(lga=lga, state=state_)
-                    else:
-                        continue
-            else:
-                continue
+                    continue
+            continue
         return api_response("Success", {}, True, 200)
     except Exception as e:
         return api_response(f"An error occured: {str(e)}",{}, False, 400)
@@ -48,44 +46,68 @@ def populate_industries(request):
     for industry in ["TECHNOLOGY", "TRANSPORT", "FINANCE", "OTHER"]:
         if not Industry.objects.filter(name=industry).exists():
             Industry.objects.create(name=industry)
-        else:
-            continue
-    return api_response("Industry Populated", {}, True, 200)
+            return api_response("Industry Populated", {}, True, 200)
+        continue
 
+
+
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['industry'],
+                             properties={
+                                 'industry': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
 @api_view(["POST"])
 def add_industry(request):
-    industry = request.data.get("industry", None)
-    if industry is None:
-        api_response("Invalid industry name")
-    if not Industry.objects.filter(name=industry).exists():
+    industry = request.data.get("industry")
+    if not Industry.objects.filter(name__iexact=industry).exists():
         Industry.objects.create(name=industry.upper())
-    else:
-        api_response("Industry Already exists", {}, True, 200)
+        return api_response("Industry Already exists", {}, True, 201)
     return api_response("Industry Added", {}, True, 200)
 
+
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['incident_type'],
+                             properties={
+                                 'incident_type': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
 @api_view(["POST"])
 def add_incident_type(request):
-    incident_type = request.data.get("incident_type", None)
-    if incident_type is None:
-        api_response("Invalid incident type")
-    if not IncidentType.objects.filter(name=incident_type).exists():
+    incident_type = request.data.get("incident_type")
+    if not IncidentType.objects.filter(name__iexact=incident_type).exists():
         IncidentType.objects.create(name=incident_type.upper())
-    else:
-        api_response("Incident Type Already exists", {}, True, 200)
-    return api_response("Incident Type Added", {}, True, 200)
+        return api_response("Incident Type Added", {}, True, 201)
+    
+    return api_response("Incident Type Already exists", {}, True, 200)
+    
 
+
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['incident_nature'],
+                             properties={
+                                 'incident_nature': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
 @api_view(["POST"])
 def add_incident_nature(request):
-    incident_nature = request.data.get("incident_nature", None)
-    if incident_nature is None:
-        api_response("Invalid incident type")
-    if not IncidentType.objects.filter(name=incident_nature).exists():
-        IncidentType.objects.create(name=incident_nature.upper())
-    else:
-        api_response("Incident Nature Already exists", {}, True, 200)
-    return api_response("Incident Nature Added", {}, True, 200)
+    incident_nature = request.data.get("incident_nature")
+    if not IncidentNature.objects.filter(nature__iexact=incident_nature).exists():
+        IncidentNature.objects.create(nature=incident_nature.upper())
+        return api_response("Incident Nature Added", {}, True, 201)
+    return api_response("Incident Nature Already exists", {}, True, 200)
 
 
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['email'],
+                             properties={
+                                 'email': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
 @api_view(["POST"])
 def add_superadmin(request):
     try:
@@ -99,6 +121,14 @@ def add_superadmin(request):
     except Exception as e:
         return api_response(f'Error: {str(e)}', {}, False, 200)
 
+
+@swagger_auto_schema(method='delete', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['email'],
+                             properties={
+                                 'email': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
 @api_view(["DELETE"])
 def remove_superadmin(request):
     try:
