@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import BaseModel, User
+from role.models import Role
 
 
 class State(models.Model):
@@ -35,6 +36,7 @@ class UserProfile(BaseModel):
     kyc = models.ImageField(upload_to=upload_to, blank=True, null=True)
     disabled = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
+    role = models.ForeignKey(Role, on_delete=models.DO_NOTHING, default=Role.get_default_pk)
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"

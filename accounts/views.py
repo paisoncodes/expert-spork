@@ -91,7 +91,7 @@ class AddUser(GenericAPIView):
         company = CompanyProfile.objects.filter(user=request.user).first()
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
-            user = User.objects.create(email=serializer.data["email"], user_type=User.AuthType.ADDED)
+            user = User.objects.create(email=serializer.data["email"], auth_type=User.AuthType.ADDED, user_type=User.UserType.COMPANY)
             CompanyUser.objects.create(user=user, company=company)
             UserProfile.objects.create(user=user)
             if request.user.user_type == User.UserType.COMPANY:

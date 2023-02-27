@@ -46,6 +46,10 @@ class Incident(BaseModel):
     evidence = models.JSONField(default=dict, null=True, blank=True)
     company_approved = models.BooleanField(default=False)
     admin_approved = models.BooleanField(default=False)
+
+
+    def __str__(self) -> str:
+        return self.name
     
 
 class Ticket(BaseModel):
@@ -57,6 +61,9 @@ class Ticket(BaseModel):
     read = models.BooleanField(default=False)
     closed = models.BooleanField(default=False)
 
+    def __str__(self) -> str:
+        return self.title
+
 class TicketReply(BaseModel):
     id = models.BigAutoField(primary_key=True, auto_created=True, serialize=False, verbose_name="ID")
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, blank=True)
@@ -64,6 +71,12 @@ class TicketReply(BaseModel):
     message = models.TextField(blank=True)
     read = models.BooleanField(default=False)
 
+    def __str__(self) -> str:
+        return self.ticket.title
+
 class TicketAssignee(BaseModel):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
     assignee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ticket_assignee")
+
+    def __str__(self) -> str:
+        return f"{self.assignee.email}:- {self.ticket.title}"

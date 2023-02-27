@@ -18,11 +18,18 @@ class Package(BaseModel):
             description = "Default package" 
         )
         return created if created else package
+    
+    def __str__(self) -> str:
+        return self.name
 
 
 class Subscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     package = models.ForeignKey(Package, on_delete=models.CASCADE, default=Package.get_default_pk)
+    extra_user = models.IntegerField(default=0)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=datetime.now())
+
+    def __str__(self) -> str:
+        return f"{self.user.email} {self.package.name} {len(Subscription.objects.filter(user=self.user))}"
     
