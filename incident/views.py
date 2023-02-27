@@ -165,7 +165,10 @@ class AllIncidentView(GenericAPIView):
         state = request.GET.get('state', None)
         # city = request.GET.get('city', None)
         lga = request.GET.get('lga', None)
-        incidents = Incident.objects.filter(admin_approved=True)
+        if request.user.is_superuser:
+            incidents = Incident.objects.all()
+        else:
+            incidents = Incident.objects.filter(admin_approved=True)
         if search:
             incidents = incidents.filter(Q(name__icontains=search) | Q(details__icontains=search))
         if date:
