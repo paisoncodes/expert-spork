@@ -20,7 +20,7 @@ state = openapi.Parameter('state', openapi.IN_QUERY,
 lga = openapi.Parameter('lga', openapi.IN_QUERY,
                              details="Lga you want to filter by.",
                              type=openapi.TYPE_STRING)
-search = openapi.Parameter('name', openapi.IN_QUERY,
+search = openapi.Parameter('search', openapi.IN_QUERY,
                              details="Parameter you want to filter by.",
                              type=openapi.TYPE_STRING)
 date = openapi.Parameter('date', openapi.IN_QUERY,
@@ -107,10 +107,13 @@ class CompanyIncidents(GenericAPIView):
         # city = request.GET.get('city', None)  
         lga = request.GET.get('lga', None)
 
-        user_company = CompanyUser.objects.get(user=request.user).company
+        user_company = CompanyUser.objects.get(user=request.user)
 
-        company_users = CompanyUser.objects.filter(company=user_company).values_list('user_id', flat=True)
-        incidents = Incident.objects.filter(owner__id__in=company_users, company_approved=True)
+        company_users = CompanyUser.objects.filter(company=user_company.company).values_list('user_id', flat=True)
+        if user_company.is_company_admin == True:
+            incidents = Incident.objects.filter(owner__id__in=company_users)
+        else:
+            incidents = Incident.objects.filter(owner__id__in=company_users, company_approved=True)
 
         serializer = self.serializer_class(incidents, many=True)
         if search:
