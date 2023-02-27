@@ -36,7 +36,7 @@ class UserProfile(BaseModel):
     kyc = models.ImageField(upload_to=upload_to, blank=True, null=True)
     disabled = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
-    role = models.ForeignKey(Role, on_delete=models.DO_NOTHING, default=Role.get_default_pk)
+    role = models.ForeignKey(Role, on_delete=models.DO_NOTHING, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
