@@ -1,7 +1,13 @@
 from rest_framework import serializers
 
-from role.models import Role
+from role.models import Role, RolePermission
 
+
+
+class RolePermisionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RolePermission
+        fields = "__all__"
 
 
 class RoleSerializer(serializers.ModelSerializer):
