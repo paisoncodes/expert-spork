@@ -5,6 +5,7 @@ from role.models import Role
 
 
 class RoleSerializer(serializers.ModelSerializer):
+    permissions = serializers.StringRelatedField(many=True)
     class Meta:
         model = Role
         fields = "__all__"

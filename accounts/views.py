@@ -10,6 +10,7 @@ from django.contrib.auth.hashers import check_password, make_password
 
 from accounts_profile.models import CompanyProfile, CompanyUser, Location, UserProfile
 from accounts_profile.serializers import CompanyUserSerializer, UserProfileSerializer
+from role.serializers import RoleSerializer
 from .permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
 
 # from sms.sendchamp import send_sms
@@ -320,6 +321,8 @@ class Login(GenericAPIView):
                 data["last_name"] = user_profile.last_name
                 data["kyc_uploaded"] = True if user_profile.kyc else False
                 data["is_verified"] = user.email_verified
+                data["role"] = RoleSerializer(user_profile.role).data
+                # data["permission_name"] = user_profile.role.permissions
                 if company_user := CompanyUser.objects.filter(user=user).first():
                     data["is_company_user"] = True 
                     data["is_company_admin"] = company_user.is_company_admin
