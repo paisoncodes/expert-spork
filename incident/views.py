@@ -6,7 +6,7 @@ from accounts_profile.models import CompanyUser, Location
 from incident.models import Incident, Ticket, TicketAssignee, TicketReply
 from accounts.permissions import IsCompanyAdmin, IsVerifiedAndActive
 
-from incident.serializers import IncidentSerializer, TicketAssigneeSerializer, TicketReplySerializer, TicketSerializer
+from incident.serializers import IncidentSerializer, IncidentViewSerializer, TicketAssigneeSerializer, TicketReplySerializer, TicketSerializer
 from notifications.models import Notification
 from utils.utils import api_response
 from drf_yasg import openapi
@@ -71,7 +71,7 @@ class IncidentView(GenericAPIView):
         # if city:
         #     incidents = incidents.filter(city__city__icontains=city)
 
-        serializer = self.serializer_class(incidents, many=True)
+        serializer = IncidentViewSerializer(incidents, many=True)
         return api_response("Incidents gotten", serializer.data, True, 200)
 
     def post(self, request):
@@ -95,7 +95,7 @@ class IncidentView(GenericAPIView):
 
 class CompanyIncidents(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
-    serializer_class = IncidentSerializer
+    serializer_class = IncidentViewSerializer
 
     @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, incident_type])
     def get(self, request):
@@ -154,7 +154,7 @@ class ApproveGeneralIncident(GenericAPIView):
 
 class AllIncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
-    serializer_class = IncidentSerializer
+    serializer_class = IncidentViewSerializer
 
     @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, incident_type])
     def get(self, request):
@@ -193,7 +193,7 @@ class IncidentRetrieveUpdateView(GenericAPIView):
 
     def get(self, request, incident_id):
         incident = get_object_or_404(Incident, id=incident_id)
-        serializer = self.serializer_class(incident)
+        serializer = IncidentViewSerializer(incident)
         return api_response("Incident retrieved", serializer.data, True, 200)
     
     def put(self, request, incident_id):

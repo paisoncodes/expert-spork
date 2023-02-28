@@ -5,8 +5,19 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 class IncidentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Incident
+        fields = "__all__"
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
+        ]
+class IncidentViewSerializer(serializers.ModelSerializer):
     state = serializers.StringRelatedField()
     lga = serializers.StringRelatedField()
+    incident_type = serializers.StringRelatedField()
+    incident_nature = serializers.StringRelatedField()
     class Meta:
         model = Incident
         fields = "__all__"

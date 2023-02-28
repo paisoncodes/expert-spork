@@ -5,7 +5,7 @@ from accounts_profile.models import City, CompanyProfile, Location, State, UserP
 from rest_framework.response import Response
 from rest_framework import status
 
-from accounts_profile.serializers import CitySerializer, CompanyProfileSerializer, KycUpdateSerializer, LocationSerializer, StateSerializer, UserProfileSerializer
+from accounts_profile.serializers import CitySerializer, CompanyProfileSerializer, KycUpdateSerializer, LocationSerializer, LocationViewSerializer, StateSerializer, UserProfileSerializer
 from accounts.models import User
 from accounts.permissions import IsCompanyAdmin, IsVerifiedAndActive
 from utils.utils import api_response
@@ -102,7 +102,7 @@ class LocationView(GenericAPIView):
     def get(self, request):
         user = request.user
         locations = Location.objects.filter(owner=user)
-        serializer = self.serializer_class(locations, many=True)
+        serializer = LocationViewSerializer(locations, many=True)
         return api_response("Locations fetched", serializer.data, True, 200)
     
     def post(self, request):
