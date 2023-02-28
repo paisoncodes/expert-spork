@@ -56,6 +56,8 @@ class CompanyUserSerializer(serializers.ModelSerializer):
 
 
 class LocationSerializer(serializers.ModelSerializer):
+    state = serializers.StringRelatedField()
+    lga = serializers.StringRelatedField()
     class Meta:
         model = Location 
         exclude = (

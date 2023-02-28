@@ -32,4 +32,8 @@ class Subscription(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.email} {self.package.name} {len(Subscription.objects.filter(user=self.user))}"
+
+
+class PaymentHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     
