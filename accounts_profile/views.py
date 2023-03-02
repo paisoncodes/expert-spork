@@ -5,7 +5,7 @@ from accounts_profile.models import City, CompanyProfile, Location, State, UserP
 from rest_framework.response import Response
 from rest_framework import status
 
-from accounts_profile.serializers import CitySerializer, CompanyProfileSerializer, KycUpdateSerializer, LocationSerializer, LocationViewSerializer, StateSerializer, UserProfileSerializer
+from accounts_profile.serializers import CitySerializer, CompanyProfileSerializer, CompanyProfileViewSerializer, KycUpdateSerializer, LocationSerializer, LocationViewSerializer, StateSerializer, UserProfileSerializer
 from accounts.models import User
 from accounts.permissions import IsCompanyAdmin, IsVerifiedAndActive
 from utils.utils import api_response
@@ -69,7 +69,7 @@ class CompanyProfileView(GenericAPIView):
 
     def get(self, request):
         company_profile, created = CompanyProfile.objects.get_or_create(user=request.user)
-        serializer = self.serializer_class(instance=company_profile)
+        serializer = CompanyProfileViewSerializer(instance=company_profile)
         return Response(
             {
                 "message": "Business Profile Gotten",
