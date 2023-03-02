@@ -10,6 +10,7 @@ from django.contrib.auth.hashers import check_password, make_password
 
 from accounts_profile.models import CompanyProfile, CompanyUser, Location, UserProfile
 from accounts_profile.serializers import CompanyUserSerializer, UserProfileSerializer
+from role.models import Role
 from role.serializers import RoleSerializer
 from .permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
 
@@ -94,7 +95,8 @@ class AddUser(GenericAPIView):
         if serializer.is_valid():
             user = User.objects.create(email=serializer.data["email"], auth_type=User.AuthType.ADDED, user_type=User.UserType.COMPANY)
             CompanyUser.objects.create(user=user, company=company)
-            UserProfile.objects.create(user=user)
+            role = Role.objects.filter(name__iexact="Corporate Users").first()
+            UserProfile.objects.create(user=user, role=role)
             if request.user.user_type == User.UserType.COMPANY:
                 locations = Location.objects.filter(owner=request.user)
                 for location in locations:
@@ -305,8 +307,8 @@ class Login(GenericAPIView):
         check = check_password(data["password"], current_password)
 
         if check:
-            # if UserProfile.objects.filter(user=user) and UserProfile.objects.get(user=user).deleted == True or UserProfile.objects.get(user=user).disabled == True:
-            #     return api_response("Account disabled. Reach out to admin for more details", {}, False, 400)
+            if UserProfile.objects.get(user=user).deleted == True or UserProfile.objects.get(user=user).disabled == True:
+                return api_response("Account disabled. Reach out to admin for more details", {}, False, 400)
             if user.email_verified:
                 data = {
                     "user_id": user.id,

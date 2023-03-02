@@ -4,10 +4,11 @@ from rest_framework.decorators import api_view
 import requests
 from accounts.models import User
 
-from accounts_profile.models import Industry, Lga, State
+from accounts_profile.models import Industry, Lga, State, UserProfile
 from accounts_profile.serializers import IndustrySerializer, LgaSerializer, StateSerializer
 from incident.models import IncidentNature, IncidentType
 from incident.serializers import IncidentNatureSerializer, IncidentTypeSerializer
+from role.models import Role
 from utils.utils import api_response
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -116,7 +117,9 @@ def add_superadmin(request):
             "email": email,
             "password": "admin"
         }
-        User.objects.create_superuser(**data)
+        user = User.objects.create_superuser(**data)
+        role = Role.objects.filter(name__iexact="Aquiline Admin").first()
+        UserProfile.objects.create(user=user, role=role)
         return api_response("Success", {}, True, 201)
     except Exception as e:
         return api_response(f'Error: {str(e)}', {}, False, 200)
