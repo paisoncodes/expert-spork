@@ -305,7 +305,7 @@ class Login(GenericAPIView):
         check = check_password(data["password"], current_password)
 
         if check:
-            if UserProfile.objects.get(user=user).deleted == True or UserProfile.objects.get(user=user).disabled == True:
+            if UserProfile.objects.filter(user=user) and UserProfile.objects.get(user=user).deleted == True or UserProfile.objects.get(user=user).disabled == True:
                 return api_response("Account disabled. Reach out to admin for more details", {}, False, 400)
             if user.email_verified:
                 data = {
@@ -316,13 +316,14 @@ class Login(GenericAPIView):
 
                 refresh = RefreshToken.for_user(user)
                 data["access_token"] = str(refresh.access_token)
-                user_profile = UserProfile.objects.get(user=user)
-                data["first_name"] = user_profile.first_name
-                data["last_name"] = user_profile.last_name
-                data["kyc_uploaded"] = True if user_profile.kyc else False
-                data["is_verified"] = user.email_verified
-                data["role"] = RoleSerializer(user_profile.role).data
-                # data["permission_name"] = user_profile.role.permissions
+                user_profile = UserProfile.objects.filter(user=user).first()
+                if user_profile:
+                    data["first_name"] = user_profile.first_name
+                    data["last_name"] = user_profile.last_name
+                    data["kyc_uploaded"] = True if user_profile.kyc else False
+                    data["is_verified"] = user.email_verified
+                    data["role"] = RoleSerializer(user_profile.role).data
+                    # data["permission_name"] = user_profile.role.permissions
                 if company_user := CompanyUser.objects.filter(user=user).first():
                     data["is_company_user"] = True 
                     data["is_company_admin"] = company_user.is_company_admin
