@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from accounts_profile.models import City, CompanyProfile, Location, State, UserProfile
+from accounts_profile.models import City, CompanyProfile, CompanyUser, Location, State, UserProfile
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -70,14 +70,9 @@ class CompanyProfileView(GenericAPIView):
     def get(self, request):
         company_profile, created = CompanyProfile.objects.get_or_create(user=request.user)
         serializer = CompanyProfileViewSerializer(instance=company_profile)
-        return Response(
-            {
-                "message": "Business Profile Gotten",
-                "data": serializer.data,
-                "status": True,
-            },
-            status=status.HTTP_200_OK,
-        )
+        data = serializer.data
+        data["no_of_users"] = CompanyUser.objects.filter(company=company_profile).count()
+        return api_response("Company Profile Fetched", data, True, 200)
 
     def put(self, request):
         user = get_object_or_404(User, pk=request.user.pk)
