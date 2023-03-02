@@ -25,6 +25,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_user_email(self, instance):
         return instance.user.email
 
+class CompanyProfileViewSerializer(serializers.ModelSerializer):
+    industry = serializers.StringRelatedField()
+    class Meta:
+        model = CompanyProfile
+        exclude = (
+            "user",
+            "id",
+            "created_at",
+            "updated_at",
+        )
 class CompanyProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyProfile
