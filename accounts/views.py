@@ -305,8 +305,8 @@ class Login(GenericAPIView):
         check = check_password(data["password"], current_password)
 
         if check:
-            if UserProfile.objects.filter(user=user) and UserProfile.objects.get(user=user).deleted == True or UserProfile.objects.get(user=user).disabled == True:
-                return api_response("Account disabled. Reach out to admin for more details", {}, False, 400)
+            # if UserProfile.objects.filter(user=user) and UserProfile.objects.get(user=user).deleted == True or UserProfile.objects.get(user=user).disabled == True:
+            #     return api_response("Account disabled. Reach out to admin for more details", {}, False, 400)
             if user.email_verified:
                 data = {
                     "user_id": user.id,
