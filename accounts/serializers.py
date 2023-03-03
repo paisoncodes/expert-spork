@@ -59,6 +59,7 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
 
 class AddUserSerializer(serializers.Serializer):
     email = serializers.EmailField()
+    role = serializers.CharField()
 
 class AddUserPassword(serializers.Serializer):
     email = serializers.EmailField()

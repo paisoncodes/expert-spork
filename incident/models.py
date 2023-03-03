@@ -34,6 +34,7 @@ class Incident(BaseModel):
     date = models.DateField(null=True, blank=True)
     time = models.TimeField(null=True, blank=True)
     details = models.TextField(null=True, blank=True)
+    address = models.CharField(max_length=225, default=str)
     lga = models.ForeignKey(Lga, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
     # city = models.ForeignKey(City, on_delete=models.CASCADE)
