@@ -1,5 +1,5 @@
 from accounts.views import AddUser, CompanyUserEditView, CompanyUsersView
-from accounts_profile.views import CityView, KycUpdateView, LocationView, Profile, CompanyProfileView, StateView
+from accounts_profile.views import CityView, KycUpdateView, LocationUpdateDeleteView, LocationView, Profile, CompanyProfileView, StateView
 
 from django.urls import path
 
@@ -15,4 +15,5 @@ urlpatterns = [
     path("cities/<str:state>/", CityView.as_view()),
     path("states/", StateView.as_view()),
     path("user/locations/", LocationView.as_view()),
+    path("user/locations/<str:location_id>/edit/", LocationUpdateDeleteView.as_view()),
 ]

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from incident.views import AllIncidentView, ApproveCompanyIncident, ApproveGeneralIncident, CompanyIncidents, IncidentRetrieveUpdateView, IncidentView, ReplyUpdateView, ReplyView, TicketRetrieveUpdateView, TicketView
+from incident.views import AllIncidentView, ApproveCompanyIncident, ApproveGeneralIncident, CompanyIncidents, IncidentRetrieveUpdateView, IncidentView, ReplyUpdateView, ReplyView, TicketRetrieveUpdateView, TicketView, UndoApproveCompanyIncident, UndoApproveGeneralIncident
 
 
 urlpatterns = [
@@ -14,4 +14,6 @@ urlpatterns = [
     path("reply/<str:reply_id>/detail/", ReplyUpdateView.as_view(), name="reply"),
     path("company/incident/<str:incident_id>/approve/", ApproveCompanyIncident.as_view()),
     path("general/incident/<str:incident_id>/approve/", ApproveGeneralIncident.as_view()),
+    path("company/incident/<str:incident_id>/undo-approve/", UndoApproveCompanyIncident.as_view()),
+    path("general/incident/<str:incident_id>/undo-approve/", UndoApproveGeneralIncident.as_view()),
 ]
