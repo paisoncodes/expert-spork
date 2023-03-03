@@ -95,7 +95,7 @@ class AddUser(GenericAPIView):
         if serializer.is_valid():
             user = User.objects.create(email=serializer.data["email"], auth_type=User.AuthType.ADDED, user_type=User.UserType.COMPANY)
             CompanyUser.objects.create(user=user, company=company)
-            role = Role.objects.filter(name__iexact="Corporate Users").first()
+            role = Role.objects.filter(name__iexact=serializer.data["role"]).first()
             UserProfile.objects.create(user=user, role=role)
             if request.user.user_type == User.UserType.COMPANY:
                 locations = Location.objects.filter(owner=request.user)
