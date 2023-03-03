@@ -112,6 +112,27 @@ class LocationView(GenericAPIView):
             return api_response("Location added successfully", serializer.data, True, 201)
         
         return api_response("Failed", serializer.errors, False, 400)
+class LocationUpdateDeleteView(GenericAPIView):
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
+    serializer_class = LocationSerializer
+
+    def put(self, request, location_id):
+        user = request.user
+        location = Location.objects.filter(owner=user, id=location_id)
+        serializer = LocationViewSerializer(data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.update(instance=location, validated_data=serializer.data)
+            return api_response("Locations fetched", serializer.data, True, 200)
+        return api_response("An error occured", serializer.errors, False, 400)
+    
+    def delete(self, request, location_id):
+        user = request.user
+        location = Location.objects.filter(owner=user, id=location_id)
+        if location.exists():
+            location.delete()
+            return api_response("Location deleted", {}, True, 200)
+        return api_response("Location not found", {}, True, 200)
+    
 
 
 class CityView(GenericAPIView):

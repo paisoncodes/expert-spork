@@ -152,6 +152,25 @@ class ApproveGeneralIncident(GenericAPIView):
 
         return api_response("Incident approved", {}, True, 202)
 
+class UndoApproveCompanyIncident(GenericAPIView):
+    permission_classes = (IsCompanyAdmin,)
+
+    def get(self, request, incident_id):
+        incident = get_object_or_404(Incident, id=incident_id)
+        incident.company_approved = False
+        incident.save()
+
+        return api_response("Incident approved", {}, True, 202)
+
+class UndoApproveGeneralIncident(GenericAPIView):
+    permission_classes = (IsAdminUser,)
+    def get(self, request, incident_id):
+        incident = get_object_or_404(Incident, id=incident_id)
+        incident.admin_approved = False
+        incident.save()
+
+        return api_response("Incident approved", {}, True, 202)
+
 class AllIncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentViewSerializer
