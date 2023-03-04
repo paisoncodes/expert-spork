@@ -124,7 +124,7 @@ class CompanyUsersView(GenericAPIView):
             "users": []
         }
         for company_user in company_users:
-            user_profile = UserProfile.objects.filter(user__email=company_user).first()
+            user_profile = UserProfile.objects.filter(user__email=company_user.user.email).first()
             user_data = (self.serializer_class(user_profile)).data
             user_data["id"] = user_profile.user.id
             data["users"].append(user_data)
