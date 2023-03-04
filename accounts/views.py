@@ -126,7 +126,11 @@ class CompanyUsersView(GenericAPIView):
         for company_user in company_users:
             user_profile = UserProfile.objects.filter(user__email=company_user.user.email).first()
             user_data = (self.serializer_class(user_profile)).data
-            user_data["id"] = user_profile.user.id
+            user_data["id"] = company_user.user.id
+            if user_profile:
+                user_data["has_profile"] = True
+            else:
+                user_data["has_profile"] = False
             data["users"].append(user_data)
         return api_response("Users fetched", data, True, 200)
 
