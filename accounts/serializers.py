@@ -10,17 +10,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    role = serializers.CharField()
 
     class Meta:
         model = User
-        fields = ("email", "password", "first_name", "last_name", "role")
+        fields = ("email", "password", "first_name", "last_name")
 
     def create(self, validated_data):
         first_name = validated_data.pop("first_name")
         last_name = validated_data.pop("last_name")
 
-        role = Role.objects.get(name__iexact=validated_data.pop("role"))
+        role = Role.objects.get(name__iexact="Default Role")
 
         user = User.objects.create_user(**validated_data)
 
@@ -35,11 +34,10 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
     state = serializers.CharField()
     company_name = serializers.CharField()
     industry = serializers.CharField()
-    role = serializers.CharField()
 
     class Meta:
         model = User
-        fields = ("email", "password", "first_name", "last_name", "state", "company_name", "industry", "role")
+        fields = ("email", "password", "first_name", "last_name", "state", "company_name", "industry")
 
     def create(self, validated_data):
         first_name = validated_data.pop("first_name")
@@ -48,7 +46,7 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
         industry = Industry.objects.filter(name__iexact=validated_data.pop("industry")).first()
         state = State.objects.filter(state__iexact=state).first()
         company_name = validated_data.pop('company_name')
-        role = Role.objects.get(name__iexact=validated_data.pop("role"))
+        role = Role.objects.get(name__iexact="Default Role")
         user = User.objects.create_user(**validated_data)
         user.user_type = User.UserType.COMPANY
         user.save()
