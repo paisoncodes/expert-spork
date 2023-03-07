@@ -72,7 +72,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
-CSRF_TRUSTED_ORIGINS = ["*"]
+CSRF_TRUSTED_ORIGINS = ["https://aquiline.workaport.com", "http://127.0.0.1"]
 
 TEMPLATES = [
     {
