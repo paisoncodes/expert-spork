@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from incident.models import Incident, Ticket, TicketAssignee, TicketReply, IncidentType, IncidentNature
+from incident.models import Advisory, AlertType, Impact, Incident, PrimaryThreatActor, ThreatLevel, Ticket, TicketAssignee, TicketReply, IncidentType, IncidentNature
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -61,12 +61,32 @@ class TicketReplySerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
-class IncidentTypeSerializer(serializers.ModelSerializer):
+class AdvisorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = IncidentType
+        model = Advisory
+        fields = "__all__"
+
+class ImpactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Impact
         fields = "__all__"
 
 class IncidentNatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = IncidentNature
+        fields = "__all__"
+
+class ThreatLevelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ThreatLevel
+        fields = "__all__"
+
+class PrimaryThreatActorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrimaryThreatActor
+        fields = "__all__"
+
+class AlertTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlertType
         fields = "__all__"

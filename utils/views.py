@@ -6,8 +6,8 @@ from accounts.models import User
 
 from accounts_profile.models import Industry, Lga, State, UserProfile
 from accounts_profile.serializers import IndustrySerializer, LgaSerializer, StateSerializer
-from incident.models import IncidentNature, IncidentType
-from incident.serializers import IncidentNatureSerializer, IncidentTypeSerializer
+from incident.models import Advisory, AlertType, Impact, IncidentNature, IncidentType, PrimaryThreatActor, ThreatLevel
+from incident.serializers import AdvisorySerializer, AlertTypeSerializer, ImpactSerializer, IncidentNatureSerializer, IncidentTypeSerializer, PrimaryThreatActorSerializer, ThreatLevelSerializer
 from role.models import Role
 from utils.utils import api_response
 from drf_yasg import openapi
@@ -70,19 +70,216 @@ def add_industry(request):
 
 @swagger_auto_schema(method='post', request_body=openapi.Schema(
                              type=openapi.TYPE_OBJECT,
-                             required=['incident_type'],
+                             required=['alert_type'],
                              properties={
-                                 'incident_type': openapi.Schema(type=openapi.TYPE_STRING)
+                                 'alert_type': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
                              },
                          ),)
 @api_view(["POST"])
-def add_incident_type(request):
-    incident_type = request.data.get("incident_type")
-    if not IncidentType.objects.filter(name__iexact=incident_type).exists():
-        IncidentType.objects.create(name=incident_type.upper())
-        return api_response("Incident Type Added", {}, True, 201)
+def add_alert_type(request):
+    alert_type = request.data.get("alert_type")
+    definition = request.data.get("definition", "")
+    if not AlertType.objects.filter(name__iexact=alert_type).exists():
+        AlertType.objects.create(name=alert_type.upper(), definition=definition)
+        return api_response("Alert Type Added", {}, True, 201)
     
-    return api_response("Incident Type Already exists", {}, True, 200)
+    return api_response("Alert Type Already exists", {}, True, 200)
+
+
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['primary_threat_actor'],
+                             properties={
+                                 'primary_threat_actor': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["POST"])
+def add_primary_threat_actor(request):
+    primary_threat_actor = request.data.get("primary_threat_actor")
+    definition = request.data.get("definition", "")
+    if not PrimaryThreatActor.objects.filter(name__iexact=primary_threat_actor).exists():
+        PrimaryThreatActor.objects.create(name=primary_threat_actor.upper(), definition=definition)
+        return api_response("Primary Threat Actor Added", {}, True, 201)
+    
+    return api_response("Primary Threat Actor Already exists", {}, True, 200)
+
+
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['impact'],
+                             properties={
+                                 'impact': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["POST"])
+def add_impact(request):
+    impact = request.data.get("impact")
+    definition = request.data.get("definition", "")
+    if not Impact.objects.filter(name__iexact=impact).exists():
+        Impact.objects.create(name=impact.upper(), definition=definition)
+        return api_response("Impact Added", {}, True, 201)
+    
+    return api_response("Impact Already exists", {}, True, 200)
+
+
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['advisory'],
+                             properties={
+                                 'impact': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["POST"])
+def add_advisory(request):
+    advisory = request.data.get("advisory")
+    definition = request.data.get("definition", "")
+    if not Advisory.objects.filter(name__iexact=advisory).exists():
+        Advisory.objects.create(name=advisory.upper(), definition=definition)
+        return api_response("Advisory Added", {}, True, 201)
+    
+    return api_response("Advisory Already exists", {}, True, 200)
+
+
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['threat_level'],
+                             properties={
+                                 'impact': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["POST"])
+def add_threat_level(request):
+    threat_level = request.data.get("threat_level")
+    definition = request.data.get("definition", "")
+    if not ThreatLevel.objects.filter(name__iexact=threat_level).exists():
+        ThreatLevel.objects.create(name=threat_level.upper(), definition=definition)
+        return api_response("Threat Level Added", {}, True, 201)
+    
+    return api_response("Threat Level Already exists", {}, True, 200)
+
+
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['primary_threat_actor'],
+                             properties={
+                                 'primary_threat_actor': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["POST"])
+def add_primary_threat_actor(request):
+    primary_threat_actor = request.data.get("primary_threat_actor")
+    definition = request.data.get("definition", "")
+    if not PrimaryThreatActor.objects.filter(name__iexact=primary_threat_actor).exists():
+        PrimaryThreatActor.objects.create(name=primary_threat_actor.upper(), definition=definition)
+        return api_response("Primary Threat Actor Added", {}, True, 201)
+    
+    return api_response("Primary Threat Actor Already exists", {}, True, 200)
+
+
+@swagger_auto_schema(method='put', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['alert_type'],
+                             properties={
+                                 'alert_type': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["PUT"])
+def update_alert_type(request, alert_type_id):
+    if alert_type:= AlertType.objects.filter(id=alert_type_id).first():
+        serializer = AlertTypeSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return api_response(serializer.errors, {}, False, 400)
+        serializer.update(instance=alert_type, validated_data=serializer.validated_data)
+        return api_response("Alert Type Updated", {}, True, 202)
+    
+    return api_response(serializer.errors, {}, False, 400)
+
+
+@swagger_auto_schema(method='put', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['primary_threat_actor'],
+                             properties={
+                                 'primary_threat_actor': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["PUT"])
+def update_primary_threat_actor(request, threat_actor_id):
+    if threat_actor:= PrimaryThreatActor.objects.filter(id=threat_actor_id).first():
+        serializer = PrimaryThreatActorSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return api_response("ERROR", serializer.errors, False, 400)
+        serializer.update(instance=threat_actor, validated_data=serializer.validated_data)
+        return api_response("Threat Actor Updated", {}, True, 202)
+    
+    return api_response("Invalid request", {}, False, 404)
+
+
+@swagger_auto_schema(method='put', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['impact'],
+                             properties={
+                                 'impact': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["PUT"])
+def update_impact(request, impact_id):
+    if impact:= Impact.objects.filter(id=impact_id).first():
+        serializer = ImpactSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return api_response("ERROR", serializer.errors, False, 400)
+        serializer.update(instance=impact, validated_data=serializer.validated_data)
+        return api_response("Impact Updated", {}, True, 202)
+    
+    return api_response("Invalid request", {}, False, 404)
+
+
+@swagger_auto_schema(method='put', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['advisory'],
+                             properties={
+                                 'impact': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["PUT"])
+def update_advisory(request, advisory_id):
+    if advisory:= Advisory.objects.filter(id=advisory_id).exists():
+        serializer = AdvisorySerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return api_response("ERROR", serializer.errors, False, 400)
+        serializer.update(instance=advisory, validated_data=serializer.validated_data)
+        return api_response("Advisory Updated", {}, True, 202)
+    
+    return api_response("Invalid request", {}, False, 404)
+
+
+@swagger_auto_schema(method='put', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['threat_level'],
+                             properties={
+                                 'impact': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["PUT"])
+def update_threat_level(request, threat_level_id):
+    if threat_level:= ThreatLevel.objects.filter(id=threat_level_id).first():
+        serializer = ThreatLevelSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return api_response("ERROR", serializer.errors, False, 400)
+        serializer.update(instance=threat_level, validated_data=serializer.validated_data)
+        return api_response("Threat Level Updated", {}, True, 202)
+    
+    return api_response("Invalid request", {}, False, 404)
     
 
 
@@ -171,15 +368,43 @@ def get_industries(request):
     return api_response("Industries fetched", serialzier.data, True, 200)
 
 @api_view(["GET"])
-def get_incident_type(request):
-    incident_types = IncidentType.objects.all()
-    serialzier = IncidentTypeSerializer(incident_types, many=True)
-
-    return api_response("Incident Types fetched", serialzier.data, True, 200)
-
-@api_view(["GET"])
 def get_incident_nature(request):
     incident_natures = IncidentNature.objects.all()
     serialzier = IncidentNatureSerializer(incident_natures, many=True)
 
     return api_response("Incident Natures fetched", serialzier.data, True, 200)
+
+@api_view(["GET"])
+def get_threat_level(request):
+    threat_levels = ThreatLevel.objects.all()
+    serialzier = ThreatLevelSerializer(threat_levels, many=True)
+
+    return api_response("Threat Levels fetched", serialzier.data, True, 200)
+
+@api_view(["GET"])
+def get_advisory(request):
+    advisories = Advisory.objects.all()
+    serialzier = AdvisorySerializer(advisories, many=True)
+
+    return api_response("Advisories fetched", serialzier.data, True, 200)
+
+@api_view(["GET"])
+def get_impact(request):
+    impacts = Impact.objects.all()
+    serialzier = ImpactSerializer(impacts, many=True)
+
+    return api_response("Advisories fetched", serialzier.data, True, 200)
+
+@api_view(["GET"])
+def get_primary_threat_actors(request):
+    primary_threat_actors = PrimaryThreatActor.objects.all()
+    serialzier = PrimaryThreatActorSerializer(primary_threat_actors, many=True)
+
+    return api_response("Advisories fetched", serialzier.data, True, 200)
+
+@api_view(["GET"])
+def get_alert_type(request):
+    alert_types = AlertType.objects.all()
+    serialzier = AlertTypeSerializer(alert_types, many=True)
+
+    return api_response("Advisories fetched", serialzier.data, True, 200)
