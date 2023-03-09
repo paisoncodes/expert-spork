@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("accounts_profile", "0001_initial"),
+        ("role", "0003_remove_role_owner_alter_role_id"),
     ]
 
     operations = [

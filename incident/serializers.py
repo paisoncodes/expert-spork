@@ -16,8 +16,12 @@ class IncidentSerializer(serializers.ModelSerializer):
 class IncidentViewSerializer(serializers.ModelSerializer):
     state = serializers.StringRelatedField()
     lga = serializers.StringRelatedField()
-    incident_type = serializers.StringRelatedField()
     incident_nature = serializers.StringRelatedField()
+    alert_type = serializers.StringRelatedField()
+    primary_threat_actor = serializers.StringRelatedField()
+    impact = serializers.StringRelatedField()
+    advisory = serializers.StringRelatedField()
+    threat_level = serializers.StringRelatedField()
     class Meta:
         model = Incident
         fields = "__all__"

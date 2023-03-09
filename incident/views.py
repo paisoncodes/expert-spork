@@ -26,8 +26,20 @@ search = openapi.Parameter('search', openapi.IN_QUERY,
 date = openapi.Parameter('date', openapi.IN_QUERY,
                              details="Date you want to filter by.",
                              type=openapi.TYPE_STRING)
-incident_type = openapi.Parameter('incident_type', openapi.IN_QUERY,
-                             details="Incident type you want to filter by.",
+alert_type = openapi.Parameter('alert_type', openapi.IN_QUERY,
+                             details="Alert type you want to filter by.",
+                             type=openapi.TYPE_STRING)
+primary_threat_actor = openapi.Parameter('primary_threat_actor', openapi.IN_QUERY,
+                             details="Primary Threat Actor you want to filter by.",
+                             type=openapi.TYPE_STRING)
+impact = openapi.Parameter('impact', openapi.IN_QUERY,
+                             details="Impact you want to filter by.",
+                             type=openapi.TYPE_STRING)
+advisory = openapi.Parameter('advisory', openapi.IN_QUERY,
+                             details="Advisory you want to filter by.",
+                             type=openapi.TYPE_STRING)
+threat_level = openapi.Parameter('threat_level', openapi.IN_QUERY,
+                             details="Threat Level you want to filter by.",
                              type=openapi.TYPE_STRING)
 incident_nature = openapi.Parameter('incident_nature', openapi.IN_QUERY,
                              details="Incident nature you want to filter by.",
@@ -43,13 +55,17 @@ class IncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, incident_type])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level])
     def get(self, request):
 
         search = request.GET.get('search', None)
         date = request.GET.get('date', None)
-        incident_type = request.GET.get('incident_type', None)
         incident_nature = request.GET.get('incident_nature', None)
+        alert_type = request.GET.get('alert_type', None)
+        primary_threat_actor = request.GET.get('primary_threat_actor', None)
+        impact = request.GET.get('impact', None)
+        advisory = request.GET.get('advisory', None)
+        threat_level = request.GET.get('threat_level', None)
         state = request.GET.get('state', None)
         # city = request.GET.get('city', None)  
         lga = request.GET.get('lga', None)
@@ -57,11 +73,19 @@ class IncidentView(GenericAPIView):
         incidents = Incident.objects.filter(owner=request.user)
 
         if search:
-            incidents = incidents.filter(Q(name__icontains=search) | Q(details__icontains=search))
+            incidents = incidents.filter(Q(details__icontains=search))
         if date:
             incidents = incidents.filter(date=date)
-        if incident_type:
-            incidents = incidents.filter(incident_type__name__icontains=incident_type)
+        if alert_type:
+            incidents = incidents.filter(alert_type__name__icontains=alert_type)
+        if primary_threat_actor:
+            incidents = incidents.filter(primary_threat_actor__name__icontains=primary_threat_actor)
+        if impact:
+            incidents = incidents.filter(impact__name__icontains=impact)
+        if advisory:
+            incidents = incidents.filter(advisory__name__icontains=advisory)
+        if threat_level:
+            incidents = incidents.filter(threat_level__name__icontains=threat_level)
         if incident_nature:
             incidents = incidents.filter(incident_nature__name__icontains=incident_nature)
         if lga:
@@ -97,12 +121,16 @@ class CompanyIncidents(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentViewSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, incident_type])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level])
     def get(self, request):
         search = request.GET.get('search', None)
         date = request.GET.get('date', None)
-        incident_type = request.GET.get('incident_type', None)
         incident_nature = request.GET.get('incident_nature', None)
+        alert_type = request.GET.get('alert_type', None)
+        primary_threat_actor = request.GET.get('primary_threat_actor', None)
+        impact = request.GET.get('impact', None)
+        advisory = request.GET.get('advisory', None)
+        threat_level = request.GET.get('threat_level', None)
         state = request.GET.get('state', None)
         # city = request.GET.get('city', None)  
         lga = request.GET.get('lga', None)
@@ -120,8 +148,16 @@ class CompanyIncidents(GenericAPIView):
             incidents = incidents.filter(Q(name__icontains=search) | Q(details__icontains=search))
         if date:
             incidents = incidents.filter(date=date)
-        if incident_type:
-            incidents = incidents.filter(incident_type__name__icontains=incident_type)
+        if alert_type:
+            incidents = incidents.filter(alert_type__name__icontains=alert_type)
+        if primary_threat_actor:
+            incidents = incidents.filter(primary_threat_actor__name__icontains=primary_threat_actor)
+        if impact:
+            incidents = incidents.filter(impact__name__icontains=impact)
+        if advisory:
+            incidents = incidents.filter(advisory__name__icontains=advisory)
+        if threat_level:
+            incidents = incidents.filter(threat_level__name__icontains=threat_level)
         if incident_nature:
             incidents = incidents.filter(incident_nature__name__icontains=incident_nature)
         if lga:
@@ -175,12 +211,16 @@ class AllIncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentViewSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, incident_type])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level])
     def get(self, request):
         search = request.GET.get('search', None)
         date = request.GET.get('date', None)
-        incident_type = request.GET.get('incident_type', None)
         incident_nature = request.GET.get('incident_nature', None)
+        alert_type = request.GET.get('alert_type', None)
+        primary_threat_actor = request.GET.get('primary_threat_actor', None)
+        impact = request.GET.get('impact', None)
+        advisory = request.GET.get('advisory', None)
+        threat_level = request.GET.get('threat_level', None)
         state = request.GET.get('state', None)
         # city = request.GET.get('city', None)
         lga = request.GET.get('lga', None)
@@ -192,8 +232,16 @@ class AllIncidentView(GenericAPIView):
             incidents = incidents.filter(Q(name__icontains=search) | Q(details__icontains=search))
         if date:
             incidents = incidents.filter(date=date)
-        if incident_type:
-            incidents = incidents.filter(incident_type__name__icontains=incident_type)
+        if alert_type:
+            incidents = incidents.filter(alert_type__name__icontains=alert_type)
+        if primary_threat_actor:
+            incidents = incidents.filter(primary_threat_actor__name__icontains=primary_threat_actor)
+        if impact:
+            incidents = incidents.filter(impact__name__icontains=impact)
+        if advisory:
+            incidents = incidents.filter(advisory__name__icontains=advisory)
+        if threat_level:
+            incidents = incidents.filter(threat_level__name__icontains=threat_level)
         if incident_nature:
             incidents = incidents.filter(incident_nature__name__icontains=incident_nature)
         if lga:
