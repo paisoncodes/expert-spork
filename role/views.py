@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from accounts.permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
 from role.models import Role, RolePermission
-from role.serializers import RolePermisionSerializer, RoleSerializer
+from role.serializers import RolePermisionSerializer, RoleSerializer, RoleViewSerializer
 
 from utils.utils import api_response
 from django.shortcuts import get_object_or_404
@@ -16,7 +16,7 @@ class RoleView(GenericAPIView):
 
     def get(self, request):
         roles = Role.objects.all()
-        serializer = self.serializer_class(roles, many=True)
+        serializer = RoleViewSerializer(roles, many=True)
         return api_response("Roles fetched", serializer.data, True, 200)
     
     def post(self, request):
