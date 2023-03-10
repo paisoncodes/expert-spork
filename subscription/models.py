@@ -66,7 +66,7 @@ class Invoice(models.Model):
     payment_date = models.DateTimeField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     number_of_users = models.IntegerField(blank=True)
-    invoice_number = models.CharField(max_length=999999, blank=True)
+    invoice_number = models.TextField(blank=True)
 
     def save(self, *args, **kwargs) -> None:
         invoice_len = Invoice.objects.all().count()
