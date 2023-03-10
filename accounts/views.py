@@ -3,6 +3,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -93,16 +94,17 @@ class AddUser(GenericAPIView):
         company = CompanyProfile.objects.filter(user=request.user).first()
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
-            user = User.objects.create(email=serializer.data["email"], auth_type=User.AuthType.ADDED, user_type=User.UserType.COMPANY)
-            CompanyUser.objects.create(user=user, company=company)
+            user = User.objects.create(email=serializer.data["email"], auth_type=User.AuthType.ADDED, user_type=User.UserType.COMPANY if company else User.UserType.CUSTOMER)
+            if company:
+                CompanyUser.objects.create(user=user, company=company)
             role = Role.objects.filter(name__iexact=serializer.data["role"]).first()
             UserProfile.objects.create(user=user, role=role)
             if request.user.user_type == User.UserType.COMPANY:
                 locations = Location.objects.filter(owner=request.user)
                 for location in locations:
                     Location.objects.create(owner=user, name=location.name, address=location.address, state=location.state, lga=location.lga)
-
-            password = generate_password(company.company_name, CompanyUser.objects.filter(company=company).count())
+            count = User.objects.all().count()
+            password = generate_password(serializer.data["email"], count)
             user.set_password(password)
             user.email_verified = True
             user.save()
@@ -134,7 +136,65 @@ class CompanyUsersView(GenericAPIView):
             data["users"].append(user_data)
         return api_response("Users fetched", data, True, 200)
 
-class CompanyUserEditView(GenericAPIView):
+class AllUsersView(GenericAPIView):
+    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
+    serializer_class = UserProfileSerializer
+
+    def get(self, request):
+        users = User.objects.all()
+        data = {}
+        for user in users:
+            user_profile = UserProfile.objects.filter(user__email=user.email).first()
+            user_data = (self.serializer_class(user_profile)).data
+            user_data["id"] = user.id
+            if user_profile:
+                user_data["has_profile"] = True
+            else:
+                user_data["has_profile"] = False
+            data["users"].append(user_data)
+        return api_response("Users fetched", data, True, 200)
+
+class AllCustomersView(GenericAPIView):
+    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
+    serializer_class = UserProfileSerializer
+
+    def get(self, request):
+        users = User.objects.all().exclude(user_type=User.UserType.COMPANY)
+        data = {}
+        for user in users:
+            user_profile = UserProfile.objects.filter(user__email=user.email).first()
+            user_data = (self.serializer_class(user_profile)).data
+            user_data["id"] = user.id
+            if user_profile:
+                user_data["has_profile"] = True
+            else:
+                user_data["has_profile"] = False
+            data["users"].append(user_data)
+        return api_response("Users fetched", data, True, 200)
+
+class AllCompaniesView(GenericAPIView):
+    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
+    serializer_class = UserProfileSerializer
+
+    def get(self, request):
+        companies = CompanyProfile.objects.all()
+        data = {}
+        for company in companies:
+            company_users = CompanyUser.objects.filter(company=company)
+        
+            data["company_name"]: company.company_name
+            for company_user in company_users:
+                user_profile = UserProfile.objects.filter(user__email=company_user.user.email).first()
+                user_data = (self.serializer_class(user_profile)).data
+                user_data["id"] = company_user.user.id
+                if user_profile:
+                    user_data["has_profile"] = True
+                else:
+                    user_data["has_profile"] = False
+                data[company.company_name]["users"].append(user_data)
+            return api_response("Users fetched", data, True, 200)
+
+class AdminCompanyUserEditView(GenericAPIView):
     permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
     serializer_class = UserProfileSerializer
 
@@ -152,17 +212,6 @@ class CompanyUserEditView(GenericAPIView):
             serializer.update(instance=user_profile, validated_data=serializer.validated_data)
             return api_response("Update successful", {}, True, 200)
         return api_response("An error occured", serializer.errors, False, 400)
-
-    def delete(self, request, user_id):
-        if request.user.is_superuser == True:
-            user = get_object_or_404(User, id=user_id)
-        else:
-            company = CompanyProfile.objects.filter(user=request.user).first()
-            user = CompanyUser.objects.filter(company=company, user__id=user_id).first().user
-        if not user:
-            return api_response("User not found", {}, False, 404)
-        user.delete()
-        return api_response("Delete successful", {}, True, 200)
 
 
 class VerifyOtp(GenericAPIView):

@@ -1,9 +1,9 @@
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from accounts.permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
-from subscription.models import Package, Subscription
+from subscription.models import Invoice, Package, Subscription
 
-from subscription.serializers import PackageSerializer, SubscriptionSerializer
+from subscription.serializers import InvoiceSerializer, InvoiceViewSerializer, PackageSerializer, SubscriptionSerializer, SubscriptionViewSerializer
 
 from utils.utils import api_response
 from django.shortcuts import get_object_or_404
@@ -15,30 +15,27 @@ class SubscriptionView(GenericAPIView):
     serializer_class = SubscriptionSerializer
 
     def get(self, request):
-        subscription = Subscription.objects.filter(user=request.user).first()
-        serializer = self.serializer_class(subscription)
-        return api_response("Subscription fetched", serializer.data, True, 200)
+        subscriptions = Subscription.objects.filter(user=request.user)
+        serializer = SubscriptionViewSerializer(subscriptions, many=True)
+        return api_response("Subscriptions fetched", serializer.data, True, 200)
 
     def post(self, request):
         data = request.data
-        data["user"] = request.user
-        serializer = self.serializer_class(data)
+        serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save()
-            package = serializer.package
-            package.no_of_subscribers += 1
-            package.save()
             return api_response("Subscription successful", serializer.data, True, 201)
         
         return api_response(serializer.errors, {}, False, 400)
 
-    def put(self, request):
-        subscription, created = Subscription.objects.get_or_create(user=request.user)
-        serializer = self.serializer_class(data=subscription, partial=True)
-        if serializer.is_valid():
-            serializer.update(instance=subscription, validated_data=serializer.validated_data)
-            return api_response("Subscription updated", serializer.data, True, 202)
-        return api_response(serializer.errors, {}, False, 400)
+class UserSubscriptionRetrieveView(GenericAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedAndActive]
+    serializer_class = SubscriptionViewSerializer
+
+    def get(self, request):
+        subscription = Subscription.objects.filter(customer=request.user).last()
+        serializer = self.serializer_class(subscription)
+        return api_response("Subscription fetched", serializer.data, True, 200)
 
 
 class PackageView(GenericAPIView):
@@ -48,7 +45,10 @@ class PackageView(GenericAPIView):
     def get(self, request):
         packages = Package.objects.filter(owner=request.user)
         serializer = self.serializer_class(packages, many=True)
-        return api_response("Packages fetched", serializer.data, True, 200)
+        data = serializer.data
+        if invoice:= Invoice.objects.filter(subscription__id=data["id"]):
+            data["invoice"] = InvoiceViewSerializer(invoice).data
+        return api_response("Packages fetched", data, True, 200)
     
 class PackageCreateView(GenericAPIView):
     permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
@@ -78,3 +78,33 @@ class PackageRetrieveUpdateView(GenericAPIView):
             serializer.update(instance=package, validated_data=serializer.validated_data)
             return api_response("Package saved", serializer.data, True, 202)
         return api_response(serializer.errors, {}, False, 400)
+
+class InvoiceView(GenericAPIView):
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
+    serializer_class = InvoiceSerializer
+
+    def get(self, request):
+        customer = request.GET.get("customer_id")
+        invoices = Invoice.objects.all()
+        if customer:
+            invoices=invoices.filter(customer__id=customer)
+
+        serializer = InvoiceViewSerializer(invoices, many=True)
+        return api_response("Invoices fetched", serializer.data, True, 200)
+    
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return api_response("Invoices saved", serializer.data, True, 201)
+        else:
+            return api_response("Error", serializer.errors, False, 400)
+
+class InvoiceRetrieveView(GenericAPIView):
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
+    serializer_class = InvoiceViewSerializer
+
+    def get(self, request, invoice_id):
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        serializer = self.serializer_class(invoice)
+        return api_response("Invoice fetched", serializer.data, True, 200)

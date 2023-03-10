@@ -49,6 +49,13 @@ class Impact(models.Model):
         return self.name
     
 
+class AffectedGroup(models.Model):
+    name = models.CharField(max_length=40)
+    definition = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.name
+
 class Advisory(models.Model):
     name = models.CharField(max_length=40)
     definition = models.TextField(null=True, blank=True)
@@ -72,6 +79,11 @@ class Incident(BaseModel):
     alert_type = models.ForeignKey(AlertType, on_delete=models.SET_NULL, null=True, blank=True)
     date = models.DateField(null=True, blank=True)
     time = models.TimeField(null=True, blank=True)
+    incident_nature = models.ForeignKey(IncidentNature, on_delete=models.CASCADE)
+    threat_level = models.ForeignKey(ThreatLevel, on_delete=models.SET_NULL, null=True, blank=True)
+    impact = models.ForeignKey(Impact, on_delete=models.SET_NULL, null=True, blank=True)
+    primary_threat_actor = models.ForeignKey(PrimaryThreatActor, on_delete=models.SET_NULL, null=True, blank=True)
+    affected_groups = models.ManyToManyField(AffectedGroup, null=True)
     details = models.TextField(null=True, blank=True)
     address = models.CharField(max_length=225, default=str)
     lga = models.ForeignKey(Lga, on_delete=models.CASCADE)
@@ -81,14 +93,10 @@ class Incident(BaseModel):
     number_of_victims = models.IntegerField(default=0)
     special_events = models.TextField(blank=True, null=True)
     prior_warnings = models.TextField(blank=True, null =True)
-    primary_threat_actor = models.ForeignKey(PrimaryThreatActor, on_delete=models.SET_NULL, null=True, blank=True)
-    incident_nature = models.ForeignKey(IncidentNature, on_delete=models.CASCADE)
     evidence = models.JSONField(default=dict, null=True, blank=True)
     company_approved = models.BooleanField(default=False)
     admin_approved = models.BooleanField(default=False)
-    impact = models.ForeignKey(Impact, on_delete=models.SET_NULL, null=True, blank=True)
-    threat_level = models.ForeignKey(ThreatLevel, on_delete=models.SET_NULL, null=True, blank=True)
-    advisory = models.ForeignKey(Advisory, on_delete=models.SET_NULL, null=True, blank=True)
+    advisory = models.TextField(null=True, blank=True)
 
 
     def __str__(self) -> str:

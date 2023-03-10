@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from incident.models import Advisory, AlertType, Impact, Incident, PrimaryThreatActor, ThreatLevel, Ticket, TicketAssignee, TicketReply, IncidentType, IncidentNature
+from incident.models import Advisory, AffectedGroup, AlertType, Impact, Incident, PrimaryThreatActor, ThreatLevel, Ticket, TicketAssignee, TicketReply, IncidentType, IncidentNature
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -20,8 +20,8 @@ class IncidentViewSerializer(serializers.ModelSerializer):
     alert_type = serializers.StringRelatedField()
     primary_threat_actor = serializers.StringRelatedField()
     impact = serializers.StringRelatedField()
-    advisory = serializers.StringRelatedField()
     threat_level = serializers.StringRelatedField()
+    affected_groups = serializers.StringRelatedField(many=True)
     class Meta:
         model = Incident
         fields = "__all__"
@@ -74,6 +74,11 @@ class ImpactSerializer(serializers.ModelSerializer):
 class IncidentNatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = IncidentNature
+        fields = "__all__"
+
+class AffectedGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AffectedGroup
         fields = "__all__"
 
 class ThreatLevelSerializer(serializers.ModelSerializer):

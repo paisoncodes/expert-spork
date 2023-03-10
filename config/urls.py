@@ -21,7 +21,7 @@ from rest_framework import permissions
 from decouple import config
 
 from config.health_check import HealthCheck
-from utils.views import add_advisory, add_alert_type, add_impact, add_incident_nature, add_industry, add_primary_threat_actor, add_superadmin, add_threat_level, count_lgas, get_advisory, get_alert_type, get_impact, get_incident_nature, get_incident_type, get_industries, get_lgas, get_primary_threat_actors, get_states, get_threat_level, populate_industries, populate_state, remove_superadmin, update_advisory, update_alert_type, update_impact, update_primary_threat_actor, update_threat_level
+from utils.views import add_advisory, add_affected_group, add_alert_type, add_impact, add_incident_nature, add_industry, add_primary_threat_actor, add_superadmin, add_threat_level, count_lgas, get_advisory, get_affected_group, get_alert_type, get_impact, get_incident_nature, get_industries, get_lgas, get_primary_threat_actors, get_states, get_threat_level, populate_industries, populate_state, remove_superadmin, update_advisory, update_affected_group, update_alert_type, update_impact, update_primary_threat_actor, update_threat_level
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -57,16 +57,19 @@ urlpatterns = [
     path('api/v1/add-threat-level/', add_threat_level),
     path('api/v1/add-advisory/', add_advisory),
     path('api/v1/add-impact/', add_impact),
+    path('api/v1/add-affected-group/', add_affected_group),
     path('api/v1/add-primary-threat-actor/', add_primary_threat_actor),
     path('api/v1/update-alert-type/<str:alert_type_id>/', update_alert_type),
     path('api/v1/update-threat-level/<str:threat_level_id>/', update_threat_level),
     path('api/v1/update-advisory/<str:advisory_id>/', update_advisory),
+    path('api/v1/update-affected-group/<str:affected_group_id>/', update_affected_group),
     path('api/v1/update-impact/<str:impact_id>/', update_impact),
-    path('api/v1/update-primary-threat-actor/<:threat_actor_id>/', update_primary_threat_actor),
+    path('api/v1/update-primary-threat-actor/<str:threat_actor_id>/', update_primary_threat_actor),
     path('api/v1/get-alert-type/', get_alert_type),
     path('api/v1/get-threat-level/', get_threat_level),
     path('api/v1/get-advisory/', get_advisory),
     path('api/v1/get-impact/', get_impact),
+    path('api/v1/get-affected-group/', get_affected_group),
     path('api/v1/get-primary-threat-actor/', get_primary_threat_actors),
     path('api/v1/add-incident-nature/', add_incident_nature),
     path('api/v1/remove-superadmin/', remove_superadmin),

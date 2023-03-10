@@ -41,6 +41,9 @@ advisory = openapi.Parameter('advisory', openapi.IN_QUERY,
 threat_level = openapi.Parameter('threat_level', openapi.IN_QUERY,
                              details="Threat Level you want to filter by.",
                              type=openapi.TYPE_STRING)
+affected_group = openapi.Parameter('affected_group', openapi.IN_QUERY,
+                             details="Affected group you want to filter by.",
+                             type=openapi.TYPE_STRING)
 incident_nature = openapi.Parameter('incident_nature', openapi.IN_QUERY,
                              details="Incident nature you want to filter by.",
                              type=openapi.TYPE_STRING)
@@ -55,7 +58,7 @@ class IncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level, affected_group])
     def get(self, request):
 
         search = request.GET.get('search', None)
@@ -67,6 +70,7 @@ class IncidentView(GenericAPIView):
         advisory = request.GET.get('advisory', None)
         threat_level = request.GET.get('threat_level', None)
         state = request.GET.get('state', None)
+        affected_group = request.GET.get('affected_group', None)
         # city = request.GET.get('city', None)  
         lga = request.GET.get('lga', None)
 
@@ -86,6 +90,8 @@ class IncidentView(GenericAPIView):
             incidents = incidents.filter(advisory__name__icontains=advisory)
         if threat_level:
             incidents = incidents.filter(threat_level__name__icontains=threat_level)
+        if affected_group:
+            incidents = incidents.filter(affected_group__name__icontains=affected_group)
         if incident_nature:
             incidents = incidents.filter(incident_nature__name__icontains=incident_nature)
         if lga:
@@ -121,7 +127,7 @@ class CompanyIncidents(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentViewSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level, affected_group])
     def get(self, request):
         search = request.GET.get('search', None)
         date = request.GET.get('date', None)
@@ -131,6 +137,7 @@ class CompanyIncidents(GenericAPIView):
         impact = request.GET.get('impact', None)
         advisory = request.GET.get('advisory', None)
         threat_level = request.GET.get('threat_level', None)
+        affected_group = request.GET.get('affected_group', None)
         state = request.GET.get('state', None)
         # city = request.GET.get('city', None)  
         lga = request.GET.get('lga', None)
@@ -158,6 +165,8 @@ class CompanyIncidents(GenericAPIView):
             incidents = incidents.filter(advisory__name__icontains=advisory)
         if threat_level:
             incidents = incidents.filter(threat_level__name__icontains=threat_level)
+        if affected_group:
+            incidents = incidents.filter(affected_group__name__icontains=affected_group)
         if incident_nature:
             incidents = incidents.filter(incident_nature__name__icontains=incident_nature)
         if lga:
@@ -211,7 +220,7 @@ class AllIncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentViewSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level, affected_group])
     def get(self, request):
         search = request.GET.get('search', None)
         date = request.GET.get('date', None)
@@ -221,6 +230,7 @@ class AllIncidentView(GenericAPIView):
         impact = request.GET.get('impact', None)
         advisory = request.GET.get('advisory', None)
         threat_level = request.GET.get('threat_level', None)
+        affected_group = request.GET.get('affected_group', None)
         state = request.GET.get('state', None)
         # city = request.GET.get('city', None)
         lga = request.GET.get('lga', None)
@@ -242,6 +252,8 @@ class AllIncidentView(GenericAPIView):
             incidents = incidents.filter(advisory__name__icontains=advisory)
         if threat_level:
             incidents = incidents.filter(threat_level__name__icontains=threat_level)
+        if affected_group:
+            incidents = incidents.filter(affected_group__name__icontains=affected_group)
         if incident_nature:
             incidents = incidents.filter(incident_nature__name__icontains=incident_nature)
         if lga:

@@ -6,8 +6,8 @@ from accounts.models import User
 
 from accounts_profile.models import Industry, Lga, State, UserProfile
 from accounts_profile.serializers import IndustrySerializer, LgaSerializer, StateSerializer
-from incident.models import Advisory, AlertType, Impact, IncidentNature, IncidentType, PrimaryThreatActor, ThreatLevel
-from incident.serializers import AdvisorySerializer, AlertTypeSerializer, ImpactSerializer, IncidentNatureSerializer, IncidentTypeSerializer, PrimaryThreatActorSerializer, ThreatLevelSerializer
+from incident.models import Advisory, AffectedGroup, AlertType, Impact, IncidentNature, IncidentType, PrimaryThreatActor, ThreatLevel
+from incident.serializers import AdvisorySerializer, AffectedGroupSerializer, AlertTypeSerializer, ImpactSerializer, IncidentNatureSerializer, PrimaryThreatActorSerializer, ThreatLevelSerializer
 from role.models import Role
 from utils.utils import api_response
 from drf_yasg import openapi
@@ -181,6 +181,24 @@ def add_primary_threat_actor(request):
     
     return api_response("Primary Threat Actor Already exists", {}, True, 200)
 
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['affected_group'],
+                             properties={
+                                 'affected_group': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["POST"])
+def add_affected_group(request):
+    affected_group = request.data.get("affected_group")
+    definition = request.data.get("definition", "")
+    if not AffectedGroup.objects.filter(name__iexact=affected_group).exists():
+        AffectedGroup.objects.create(name=affected_group.upper(), definition=definition)
+        return api_response("Group Added", {}, True, 201)
+    
+    return api_response("Group Already exists", {}, True, 200)
+
 
 @swagger_auto_schema(method='put', request_body=openapi.Schema(
                              type=openapi.TYPE_OBJECT,
@@ -197,6 +215,25 @@ def update_alert_type(request, alert_type_id):
         if not serializer.is_valid():
             return api_response(serializer.errors, {}, False, 400)
         serializer.update(instance=alert_type, validated_data=serializer.validated_data)
+        return api_response("Alert Type Updated", {}, True, 202)
+    
+    return api_response(serializer.errors, {}, False, 400)
+
+@swagger_auto_schema(method='put', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['affected_group'],
+                             properties={
+                                 'affected_group': openapi.Schema(type=openapi.TYPE_STRING),
+                                 'definition': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["PUT"])
+def update_affected_group(request, affected_group_id):
+    if affected_group:= AffectedGroup.objects.filter(id=affected_group_id).first():
+        serializer = AffectedGroupSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return api_response(serializer.errors, {}, False, 400)
+        serializer.update(instance=affected_group, validated_data=serializer.validated_data)
         return api_response("Alert Type Updated", {}, True, 202)
     
     return api_response(serializer.errors, {}, False, 400)
@@ -408,3 +445,10 @@ def get_alert_type(request):
     serialzier = AlertTypeSerializer(alert_types, many=True)
 
     return api_response("Advisories fetched", serialzier.data, True, 200)
+
+@api_view(["GET"])
+def get_affected_group(request):
+    affected_groups = AffectedGroup.objects.all()
+    serialzier = AffectedGroupSerializer(affected_groups, many=True)
+
+    return api_response("Groups fetched", serialzier.data, True, 200)
