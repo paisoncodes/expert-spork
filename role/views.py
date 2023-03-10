@@ -25,6 +25,8 @@ class RoleView(GenericAPIView):
        if serializer.is_valid():
            serializer.save()
            return api_response("Roles saved", serializer.data, True, 201)
+       else:
+           return api_response("ERROR", serializer.errors, False, 400)
 
 class RoleRetrieveUpdateView(GenericAPIView):
     permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
