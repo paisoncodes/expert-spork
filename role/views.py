@@ -24,7 +24,8 @@ class RoleView(GenericAPIView):
        serializer = self.serializer_class(data=data)
        if serializer.is_valid():
            serializer.save()
-           return api_response("Roles saved", serializer.data, True, 201)
+           role = RoleViewSerializer(serializer.data)
+           return api_response("Roles saved", role.data, True, 201)
        else:
            return api_response("ERROR", serializer.errors, False, 400)
 
