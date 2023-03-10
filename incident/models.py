@@ -24,38 +24,83 @@ class IncidentNature(models.Model):
 
     def __str__(self) -> str:
         return self.nature
+
+class AlertType(models.Model):
+    name = models.CharField(max_length=40)
+    definition = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.name
+    
+
+class PrimaryThreatActor(models.Model):
+    name = models.CharField(max_length=40)
+    definition = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.name
+    
+
+class Impact(models.Model):
+    name = models.CharField(max_length=40)
+    definition = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.name
+    
+
+class AffectedGroup(models.Model):
+    name = models.CharField(max_length=40)
+    definition = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+class Advisory(models.Model):
+    name = models.CharField(max_length=40)
+    definition = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.name
+    
+
+class ThreatLevel(models.Model):
+    name = models.CharField(max_length=40)
+    color_code = models.CharField(max_length=20)
+    definition = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.name
     
 
 class Incident(BaseModel):
     id = models.BigAutoField(primary_key=True, auto_created=True, serialize=False, verbose_name="ID")
     owner = models.ForeignKey(User, on_delete=models.CASCADE, default=User.get_default_pk)
-    # TODO: Remove name and add alert type
-    name = models.CharField(max_length=225)
-    incident_type = models.ForeignKey(IncidentType, on_delete=models.CASCADE, default=IncidentType.get_default_pk)
+    alert_type = models.ForeignKey(AlertType, on_delete=models.SET_NULL, null=True, blank=True)
     date = models.DateField(null=True, blank=True)
     time = models.TimeField(null=True, blank=True)
+    incident_nature = models.ForeignKey(IncidentNature, on_delete=models.CASCADE)
+    threat_level = models.ForeignKey(ThreatLevel, on_delete=models.SET_NULL, null=True, blank=True)
+    impact = models.ForeignKey(Impact, on_delete=models.SET_NULL, null=True, blank=True)
+    primary_threat_actor = models.ForeignKey(PrimaryThreatActor, on_delete=models.SET_NULL, null=True, blank=True)
+    affected_groups = models.ManyToManyField(AffectedGroup, null=True)
     details = models.TextField(null=True, blank=True)
     address = models.CharField(max_length=225, default=str)
     lga = models.ForeignKey(Lga, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
     # city = models.ForeignKey(City, on_delete=models.CASCADE)
-    # TODO: Change past occurences to TextField.
-    past_occurrences = models.JSONField(default=dict, null=True, blank=True)
+    past_occurrences = models.TextField(null=True, blank=True)
     number_of_victims = models.IntegerField(default=0)
     special_events = models.TextField(blank=True, null=True)
     prior_warnings = models.TextField(blank=True, null =True)
-    # TODO: change this to foreign key primary threat actors
-    perpetrators = models.TextField(null=True, blank=True)
-    # TODO: Remove this.
-    incident_nature = models.ForeignKey(IncidentNature, on_delete=models.CASCADE)
     evidence = models.JSONField(default=dict, null=True, blank=True)
     company_approved = models.BooleanField(default=False)
     admin_approved = models.BooleanField(default=False)
-    # TODO: Add Impact and Threat level, all foreign keys and threath level should have a color code field.
+    advisory = models.TextField(null=True, blank=True)
 
 
     def __str__(self) -> str:
-        return self.name
+        return self.alert_type.name
     
 
 class Ticket(BaseModel):

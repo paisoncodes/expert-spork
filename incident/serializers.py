@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from incident.models import Incident, Ticket, TicketAssignee, TicketReply, IncidentType, IncidentNature
+from incident.models import Advisory, AffectedGroup, AlertType, Impact, Incident, PrimaryThreatActor, ThreatLevel, Ticket, TicketAssignee, TicketReply, IncidentType, IncidentNature
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -16,8 +16,12 @@ class IncidentSerializer(serializers.ModelSerializer):
 class IncidentViewSerializer(serializers.ModelSerializer):
     state = serializers.StringRelatedField()
     lga = serializers.StringRelatedField()
-    incident_type = serializers.StringRelatedField()
     incident_nature = serializers.StringRelatedField()
+    alert_type = serializers.StringRelatedField()
+    primary_threat_actor = serializers.StringRelatedField()
+    impact = serializers.StringRelatedField()
+    threat_level = serializers.StringRelatedField()
+    affected_groups = serializers.StringRelatedField(many=True)
     class Meta:
         model = Incident
         fields = "__all__"
@@ -57,12 +61,37 @@ class TicketReplySerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
-class IncidentTypeSerializer(serializers.ModelSerializer):
+class AdvisorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = IncidentType
+        model = Advisory
+        fields = "__all__"
+
+class ImpactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Impact
         fields = "__all__"
 
 class IncidentNatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = IncidentNature
+        fields = "__all__"
+
+class AffectedGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AffectedGroup
+        fields = "__all__"
+
+class ThreatLevelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ThreatLevel
+        fields = "__all__"
+
+class PrimaryThreatActorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrimaryThreatActor
+        fields = "__all__"
+
+class AlertTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlertType
         fields = "__all__"
