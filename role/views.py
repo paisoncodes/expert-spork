@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from accounts.permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
 from role.models import Role, RolePermission
-from role.serializers import RolePermisionSerializer, RoleSerializer
+from role.serializers import RolePermisionSerializer, RoleSerializer, RoleViewSerializer
 
 from utils.utils import api_response
 from django.shortcuts import get_object_or_404
@@ -16,15 +16,22 @@ class RoleView(GenericAPIView):
 
     def get(self, request):
         roles = Role.objects.all()
-        serializer = self.serializer_class(roles, many=True)
+        serializer = RoleViewSerializer(roles, many=True)
         return api_response("Roles fetched", serializer.data, True, 200)
     
     def post(self, request):
        data = request.data
-       serializer = self.serializer_class(data)
+       if role:= Role.objects.filter(name__iexact=data["name"]).first():
+           serializer = RoleViewSerializer(role)
+           return api_response("Role with this name exists. Try updatingit.", serializer.data, True, 200)
+       serializer = self.serializer_class(data=data)
        if serializer.is_valid():
            serializer.save()
+           role = Role.objects.all().last()
+           serializer = RoleViewSerializer(role)
            return api_response("Roles saved", serializer.data, True, 201)
+       else:
+           return api_response("ERROR", serializer.errors, False, 400)
 
 class RoleRetrieveUpdateView(GenericAPIView):
     permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
