@@ -12,12 +12,17 @@ from django.shortcuts import get_object_or_404
 
 class SubscriptionView(GenericAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedAndActive]
-    serializer_class = SubscriptionSerializer
+    serializer_class = SubscriptionViewSerializer
 
     def get(self, request):
         subscriptions = Subscription.objects.filter(user=request.user)
         serializer = SubscriptionViewSerializer(subscriptions, many=True)
         return api_response("Subscriptions fetched", serializer.data, True, 200)
+
+
+class SubscriptionCreate(GenericAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedAndActive]
+    serializer_class = SubscriptionSerializer
 
     def post(self, request):
         data = request.data
@@ -81,7 +86,7 @@ class PackageRetrieveUpdateView(GenericAPIView):
 
 class InvoiceView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
-    serializer_class = InvoiceSerializer
+    serializer_class = InvoiceViewSerializer
 
     def get(self, request):
         customer = request.GET.get("customer_id")
@@ -89,8 +94,12 @@ class InvoiceView(GenericAPIView):
         if customer:
             invoices=invoices.filter(customer__id=customer)
 
-        serializer = InvoiceViewSerializer(invoices, many=True)
+        serializer = self.serializer_class(invoices, many=True)
         return api_response("Invoices fetched", serializer.data, True, 200)
+    
+class InvoiceCreate(GenericAPIView):
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
+    serializer_class = InvoiceSerializer
     
     def post(self, request):
         serializer = self.serializer_class(data=request.data)

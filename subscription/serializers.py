@@ -4,7 +4,7 @@ from subscription.models import Invoice, Package, Subscription
 
 
 
-class SubscriptionSerializer(serializers.Serializer):
+class SubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subscription
@@ -14,7 +14,7 @@ class SubscriptionSerializer(serializers.Serializer):
             "payment_status",
             "status"
         ]
-class SubscriptionViewSerializer(serializers.Serializer):
+class SubscriptionViewSerializer(serializers.ModelSerializer):
     alert_type = serializers.StringRelatedField(many=True)
     state = serializers.StringRelatedField(many=True)
     incident_nature = serializers.StringRelatedField(many=True)
@@ -32,7 +32,7 @@ class SubscriptionViewSerializer(serializers.Serializer):
             "status"
         ]
 
-class PackageSerializer(serializers.Serializer):
+class PackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Package
         fields = "__all__"
@@ -41,7 +41,7 @@ class PackageSerializer(serializers.Serializer):
             "created_at",
             "updated_at",
         ]
-class InvoiceSerializer(serializers.Serializer):
+class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = "__all__"
@@ -55,7 +55,7 @@ class InvoiceSerializer(serializers.Serializer):
             "number_of_users",
             "invoice_number",
         ]
-class InvoiceViewSerializer(serializers.Serializer):
+class InvoiceViewSerializer(serializers.ModelSerializer):
     customer = serializers.StringRelatedField()
     subscription = serializers.StringRelatedField()
     class Meta:
