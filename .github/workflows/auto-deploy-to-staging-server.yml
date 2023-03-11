@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          clean: true
+          clean: false
 
       - name: Generate .env file
         uses: SpicyPizza/create-envfile@v1.3
