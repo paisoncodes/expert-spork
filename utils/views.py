@@ -202,6 +202,42 @@ def add_affected_group(request):
 
 @swagger_auto_schema(method='put', request_body=openapi.Schema(
                              type=openapi.TYPE_OBJECT,
+                             required=['incident_nature'],
+                             properties={
+                                 'incident_nature': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["PUT"])
+def update_incident_nature(request, incident_nature_id):
+    if incident_nature:= IncidentNature.objects.filter(id=incident_nature_id).first():
+        serializer = IncidentNatureSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return api_response(serializer.errors, {}, False, 400)
+        serializer.update(instance=incident_nature, validated_data=serializer.validated_data)
+        return api_response("Incident Nature Updated", {}, True, 202)
+    
+    return api_response("Invalid request", {}, False, 400)
+
+@swagger_auto_schema(method='put', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
+                             required=['industry'],
+                             properties={
+                                 'industry': openapi.Schema(type=openapi.TYPE_STRING)
+                             },
+                         ),)
+@api_view(["PUT"])
+def update_industry(request, industry_id):
+    if industry:= Industry.objects.filter(id=industry_id).first():
+        serializer = IndustrySerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return api_response(serializer.errors, {}, False, 400)
+        serializer.update(instance=industry, validated_data=serializer.validated_data)
+        return api_response("Industry Updated", {}, True, 202)
+    
+    return api_response("Invalid request", {}, False, 400)
+
+@swagger_auto_schema(method='put', request_body=openapi.Schema(
+                             type=openapi.TYPE_OBJECT,
                              required=['alert_type'],
                              properties={
                                  'alert_type': openapi.Schema(type=openapi.TYPE_STRING),
@@ -217,7 +253,7 @@ def update_alert_type(request, alert_type_id):
         serializer.update(instance=alert_type, validated_data=serializer.validated_data)
         return api_response("Alert Type Updated", {}, True, 202)
     
-    return api_response(serializer.errors, {}, False, 400)
+    return api_response("Invalid request", {}, False, 400)
 
 @swagger_auto_schema(method='put', request_body=openapi.Schema(
                              type=openapi.TYPE_OBJECT,
@@ -234,9 +270,9 @@ def update_affected_group(request, affected_group_id):
         if not serializer.is_valid():
             return api_response(serializer.errors, {}, False, 400)
         serializer.update(instance=affected_group, validated_data=serializer.validated_data)
-        return api_response("Alert Type Updated", {}, True, 202)
+        return api_response("Affected Group Updated", {}, True, 202)
     
-    return api_response(serializer.errors, {}, False, 400)
+    return api_response("Invalid request", {}, False, 400)
 
 
 @swagger_auto_schema(method='put', request_body=openapi.Schema(
@@ -317,6 +353,78 @@ def update_threat_level(request, threat_level_id):
         return api_response("Threat Level Updated", {}, True, 202)
     
     return api_response("Invalid request", {}, False, 404)
+
+
+@api_view(["DELETE"])
+def delete_alert_type(request, alert_type_id):
+    if alert_type:= AlertType.objects.filter(id=alert_type_id).first():
+        alert_type.delete()
+        return api_response("Alert Type Deleted", {}, True, 202)
+    
+    return api_response("Not Found", {}, False, 404)
+
+
+@api_view(["DELETE"])
+def delete_affected_group(request, affected_group_id):
+    if affected_group:= AffectedGroup.objects.filter(id=affected_group_id).first():
+        affected_group.delete()
+        return api_response("Affected Group Deleted", {}, True, 202)
+    
+    return api_response("Not Found", {}, False, 404)
+
+
+
+@api_view(["DELETE"])
+def delete_primary_threat_actor(request, threat_actor_id):
+    if threat_actor:= PrimaryThreatActor.objects.filter(id=threat_actor_id).first():
+        threat_actor.delete()
+        return api_response("Threat Actor Deleted", {}, True, 202)
+    
+    return api_response("Not Found", {}, False, 404)
+
+
+
+@api_view(["DELETE"])
+def delete_impact(request, impact_id):
+    if impact:= Impact.objects.filter(id=impact_id).first():
+        impact.delete()
+        return api_response("Impact Deleted", {}, True, 202)
+    
+    return api_response("Not Found", {}, False, 404)
+
+
+@api_view(["DELETE"])
+def delete_advisory(request, advisory_id):
+    if advisory:= Advisory.objects.filter(id=advisory_id).exists():
+        advisory.delete()
+        return api_response("Advisory Deleted", {}, True, 202)
+    
+    return ("Not Found", {}, False, 404)
+
+
+@api_view(["DELETE"])
+def delete_threat_level(request, threat_level_id):
+    if threat_level:= ThreatLevel.objects.filter(id=threat_level_id).first():
+        threat_level.delete()
+        return api_response("Threat Level Deleted", {}, True, 202)
+    
+    return api_response("Not Found", {}, False, 404)
+
+@api_view(["DELETE"])
+def delete_industry(request, industry_id):
+    if industry:= Industry.objects.filter(id=industry_id).first():
+        industry.delete()
+        return api_response("Industry Deleted", {}, True, 202)
+    
+    return api_response("Not Found", {}, False, 404)
+
+@api_view(["DELETE"])
+def delete_incident_nature(request, incident_nature_id):
+    if incident_nature:= IncidentNature.objects.filter(id=incident_nature_id).first():
+        incident_nature.delete()
+        return api_response("Incident Nature Deleted", {}, True, 202)
+    
+    return api_response("Not Found", {}, False, 404)
     
 
 
