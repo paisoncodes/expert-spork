@@ -142,7 +142,7 @@ class AllUsersView(GenericAPIView):
 
     def get(self, request):
         users = User.objects.all()
-        data = {}
+        data = {"users": []}
         for user in users:
             user_profile = UserProfile.objects.filter(user__email=user.email).first()
             user_data = (self.serializer_class(user_profile)).data
@@ -160,7 +160,7 @@ class AllCustomersView(GenericAPIView):
 
     def get(self, request):
         users = User.objects.all().exclude(user_type=User.UserType.COMPANY)
-        data = {}
+        data = {'users': []}
         for user in users:
             user_profile = UserProfile.objects.filter(user__email=user.email).first()
             user_data = (self.serializer_class(user_profile)).data
@@ -178,7 +178,7 @@ class AllCompaniesView(GenericAPIView):
 
     def get(self, request):
         companies = CompanyProfile.objects.all()
-        data = {}
+        data = {'users': []}
         for company in companies:
             company_users = CompanyUser.objects.filter(company=company)
         
