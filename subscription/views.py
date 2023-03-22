@@ -1,6 +1,8 @@
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from accounts.models import User
 from accounts.permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
+from notifications.models import Notification
 from subscription.models import Invoice, Package, Subscription
 
 from subscription.serializers import InvoiceSerializer, InvoiceViewSerializer, PackageSerializer, SubscriptionSerializer, SubscriptionViewSerializer
@@ -29,6 +31,8 @@ class SubscriptionCreate(GenericAPIView):
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save()
+            customer = serializer.data["customer"]
+            Notification.objects.create(title="Subscription Added successfully.", user=User.objects.get(id=customer), object_id=serializer.data["id"])
             return api_response("Subscription successful", serializer.data, True, 201)
         
         return api_response(serializer.errors, {}, False, 400)

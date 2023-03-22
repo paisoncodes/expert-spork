@@ -7,7 +7,7 @@ from django.conf import settings
 import sendgrid
 from sendgrid.helpers.mail import *
 
-from notifications.models import Messages, Emails
+from notifications.models import Messages, Emails, Notification
 
 from subscription.models import EXPIRED, Subscription
 
@@ -108,7 +108,7 @@ def check_subscription_status():
             if subscription.expiry_date.replace(tzinfo=utc) <= (datetime.now()).replace(tzinfo=utc):
                 subscription.status = EXPIRED
                 subscription.save()
-                print("function ran")
+                Notification.objects.create(title=f"You reported an incident.", user=subscription.customer, object_id=subscription.id)
             else:
                 print("function failed")
         print("exits function")
