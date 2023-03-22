@@ -8,6 +8,7 @@ from accounts.permissions import IsCompanyAdmin, IsVerifiedAndActive
 
 from incident.serializers import IncidentSerializer, IncidentViewSerializer, TicketAssigneeSerializer, TicketReplySerializer, TicketSerializer
 from notifications.models import Notification
+from subscription.models import ACTIVE, Subscription
 from utils.utils import api_response
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -16,10 +17,10 @@ from django.db.models import Q
 
 state = openapi.Parameter('state', openapi.IN_QUERY,
                              details="State you want to filter by.",
-                             type=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
 lga = openapi.Parameter('lga', openapi.IN_QUERY,
                              details="Lga you want to filter by.",
-                             type=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
 search = openapi.Parameter('search', openapi.IN_QUERY,
                              details="Parameter you want to filter by.",
                              type=openapi.TYPE_STRING)
@@ -28,25 +29,22 @@ date = openapi.Parameter('date', openapi.IN_QUERY,
                              type=openapi.TYPE_STRING)
 alert_type = openapi.Parameter('alert_type', openapi.IN_QUERY,
                              details="Alert type you want to filter by.",
-                             type=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
 primary_threat_actor = openapi.Parameter('primary_threat_actor', openapi.IN_QUERY,
                              details="Primary Threat Actor you want to filter by.",
-                             type=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
 impact = openapi.Parameter('impact', openapi.IN_QUERY,
                              details="Impact you want to filter by.",
-                             type=openapi.TYPE_STRING)
-advisory = openapi.Parameter('advisory', openapi.IN_QUERY,
-                             details="Advisory you want to filter by.",
-                             type=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
 threat_level = openapi.Parameter('threat_level', openapi.IN_QUERY,
                              details="Threat Level you want to filter by.",
-                             type=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
 affected_group = openapi.Parameter('affected_group', openapi.IN_QUERY,
                              details="Affected group you want to filter by.",
-                             type=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
 incident_nature = openapi.Parameter('incident_nature', openapi.IN_QUERY,
                              details="Incident nature you want to filter by.",
-                             type=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
 # incident_nature = openapi.Parameter('incident nature', openapi.IN_QUERY,
 #                              details="Incident nature you want to filter by.",
 #                              type=openapi.TYPE_STRING)
@@ -58,7 +56,7 @@ class IncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level, affected_group])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group])
     def get(self, request):
 
         search = request.GET.get('search', None)
@@ -67,39 +65,38 @@ class IncidentView(GenericAPIView):
         alert_type = request.GET.get('alert_type', None)
         primary_threat_actor = request.GET.get('primary_threat_actor', None)
         impact = request.GET.get('impact', None)
-        advisory = request.GET.get('advisory', None)
         threat_level = request.GET.get('threat_level', None)
         state = request.GET.get('state', None)
         affected_group = request.GET.get('affected_group', None)
         # city = request.GET.get('city', None)  
         lga = request.GET.get('lga', None)
 
-        incidents = Incident.objects.filter(owner=request.user)
+        query = {"owner": request.user}
 
         if search:
-            incidents = incidents.filter(Q(details__icontains=search))
+            query["details__icontains"]=search
         if date:
-            incidents = incidents.filter(date=date)
+            query["date"]=date
         if alert_type:
-            incidents = incidents.filter(alert_type__name__icontains=alert_type)
+            query["alert_type__name__in"]=alert_type
         if primary_threat_actor:
-            incidents = incidents.filter(primary_threat_actor__name__icontains=primary_threat_actor)
+            query["primary_threat_actor__name__in"]=primary_threat_actor
         if impact:
-            incidents = incidents.filter(impact__name__icontains=impact)
-        if advisory:
-            incidents = incidents.filter(advisory__name__icontains=advisory)
+            query["impact__name__in"]=impact
         if threat_level:
-            incidents = incidents.filter(threat_level__name__icontains=threat_level)
+            query["threat_level__name__in"]=threat_level
         if affected_group:
-            incidents = incidents.filter(affected_group__name__icontains=affected_group)
+            query["affected_groups__name__in"]=affected_group
         if incident_nature:
-            incidents = incidents.filter(incident_nature__name__icontains=incident_nature)
+            query["incident_nature__name__in"]=incident_nature
         if lga:
-            incidents = incidents.filter(lga__lga__icontains=lga)
+            query["lga__lga__in"]=lga
         if state:
-            incidents = incidents.filter(state__state__icontains=state)
+            query["state__state__in"]=state
         # if city:
-        #     incidents = incidents.filter(city__city__icontains=city)
+        #     query["city__city__icontains"]=city
+
+        incidents = Incident.objects.filter(**query)
 
         serializer = IncidentViewSerializer(incidents, many=True)
         return api_response("Incidents gotten", serializer.data, True, 200)
@@ -110,14 +107,22 @@ class IncidentView(GenericAPIView):
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save()
-            lga = serializer.data["lga"]
             state = serializer.data["state"]
+            alert_type = serializer.data["alert_type"]
+            incident_nature = serializer.data["incident_nature"]
+            threat_level = serializer.data["threat_level"]
+            impact = serializer.data["impact"]
+            primary_threat_actor = serializer.data["primary_threat_actor"]
+            affected_groups = serializer.data["affected_groups"]
             # city = serializer.data.city
-            if user_locations := Location.objects.filter(lga=lga, state=state): #, city=city):
-                for location in user_locations:
-                    if location.owner == request.user:
-                        Notification.objects.create(title=f"You reported an incident, {location.name}", user=location.owner, object_id=serializer.data["id"])
-                    Notification.objects.create(title=f"Incident reported at registered location, {location.name}", user=location.owner, object_id=serializer.data["id"])
+            if subscriptions := Subscription.objects.filter(Q(alert_type__id__in=[alert_type]) | Q(state__id__in=[state]) | Q(incident_nature__id__in=[incident_nature]) | Q(threat_level__id__in=[threat_level]) | Q(impact__id__in=[impact]) | Q(primary_threat_actor__id__in=[primary_threat_actor]) | Q(affected_groups__name__in=affected_groups), status=ACTIVE).distinct():
+                for subscription in subscriptions:
+                    print(subscription)
+                    if subscription.customer == request.user:
+                        Notification.objects.create(title=f"You reported an incident.", user=subscription.customer, object_id=serializer.data["id"])
+                    else:
+                        Notification.objects.create(title=f"Incident reported. You're getting this because your subscription includes this incident", user=subscription.customer, object_id=serializer.data["id"])
+
             return api_response("Incident created successfully",serializer.data, True, 201)
         else:
             return api_response(serializer.errors, {}, False, 400)
@@ -127,7 +132,7 @@ class CompanyIncidents(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentViewSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level, affected_group])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group])
     def get(self, request):
         search = request.GET.get('search', None)
         date = request.GET.get('date', None)
@@ -135,46 +140,47 @@ class CompanyIncidents(GenericAPIView):
         alert_type = request.GET.get('alert_type', None)
         primary_threat_actor = request.GET.get('primary_threat_actor', None)
         impact = request.GET.get('impact', None)
-        advisory = request.GET.get('advisory', None)
         threat_level = request.GET.get('threat_level', None)
         affected_group = request.GET.get('affected_group', None)
         state = request.GET.get('state', None)
         # city = request.GET.get('city', None)  
         lga = request.GET.get('lga', None)
 
+        query = {}
         user_company = CompanyUser.objects.get(user=request.user)
 
-        company_users = CompanyUser.objects.filter(company=user_company.company).values_list('user_id', flat=True)
+        company_users = CompanyUser.objects.filter(company=user_company.company).values_list('user__id', flat=True)
         if user_company.is_company_admin == True:
-            incidents = Incident.objects.filter(owner__id__in=company_users)
+            query["owner__id__in"] = company_users
         else:
-            incidents = Incident.objects.filter(owner__id__in=company_users, company_approved=True)
+            query["owner__id__in"] = company_users
+            query["company_approved"] = True
+        if search:
+            query["details__icontains"]=search
+        if date:
+            query["date"]=date
+        if alert_type:
+            query["alert_type__name__in"]=alert_type
+        if primary_threat_actor:
+            query["primary_threat_actor__name__in"]=primary_threat_actor
+        if impact:
+            query["impact__name__in"]=impact
+        if threat_level:
+            query["threat_level__name__in"]=threat_level
+        if affected_group:
+            query["affected_group__name__in"]=affected_group
+        if incident_nature:
+            query["incident_nature__name__in"]=incident_nature
+        if lga:
+            query["lga__lga__in"]=lga
+        if state:
+            query["state__state__in"]=state
+        # if city:
+        #     query["city__city__icontains"]=city
+
+        incidents = Incident.objects.filter(**query)
 
         serializer = self.serializer_class(incidents, many=True)
-        if search:
-            incidents = incidents.filter(Q(name__icontains=search) | Q(details__icontains=search))
-        if date:
-            incidents = incidents.filter(date=date)
-        if alert_type:
-            incidents = incidents.filter(alert_type__name__icontains=alert_type)
-        if primary_threat_actor:
-            incidents = incidents.filter(primary_threat_actor__name__icontains=primary_threat_actor)
-        if impact:
-            incidents = incidents.filter(impact__name__icontains=impact)
-        if advisory:
-            incidents = incidents.filter(advisory__name__icontains=advisory)
-        if threat_level:
-            incidents = incidents.filter(threat_level__name__icontains=threat_level)
-        if affected_group:
-            incidents = incidents.filter(affected_group__name__icontains=affected_group)
-        if incident_nature:
-            incidents = incidents.filter(incident_nature__name__icontains=incident_nature)
-        if lga:
-            incidents = incidents.filter(lga__lga__icontains=lga)
-        if state:
-            incidents = incidents.filter(state__state__icontains=state)
-        # if city:
-        #     incidents = incidents.filter(city__city__icontains=city)
 
         return api_response("Company Incidents fetched", serializer.data, True, 200)
 
@@ -224,7 +230,7 @@ class AllIncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentViewSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, advisory, threat_level, affected_group])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group])
     def get(self, request):
         search = request.GET.get('search', None)
         date = request.GET.get('date', None)
@@ -232,40 +238,42 @@ class AllIncidentView(GenericAPIView):
         alert_type = request.GET.get('alert_type', None)
         primary_threat_actor = request.GET.get('primary_threat_actor', None)
         impact = request.GET.get('impact', None)
-        advisory = request.GET.get('advisory', None)
         threat_level = request.GET.get('threat_level', None)
         affected_group = request.GET.get('affected_group', None)
         state = request.GET.get('state', None)
         # city = request.GET.get('city', None)
         lga = request.GET.get('lga', None)
+
+        query = {}
+
         if request.user.is_superuser:
-            incidents = Incident.objects.all()
+            pass
         else:
-            incidents = Incident.objects.filter(admin_approved=True)
+            query["admin_approved"] = True
         if search:
-            incidents = incidents.filter(Q(name__icontains=search) | Q(details__icontains=search))
+            query["details__icontains"]=search
         if date:
-            incidents = incidents.filter(date=date)
+            query["date"]=date
         if alert_type:
-            incidents = incidents.filter(alert_type__name__icontains=alert_type)
+            query["alert_type__name__in"]=alert_type
         if primary_threat_actor:
-            incidents = incidents.filter(primary_threat_actor__name__icontains=primary_threat_actor)
+            query["primary_threat_actor__name__in"]=primary_threat_actor
         if impact:
-            incidents = incidents.filter(impact__name__icontains=impact)
-        if advisory:
-            incidents = incidents.filter(advisory__name__icontains=advisory)
+            query["impact__name__in"]=impact
         if threat_level:
-            incidents = incidents.filter(threat_level__name__icontains=threat_level)
+            query["threat_level__name__in"]=threat_level
         if affected_group:
-            incidents = incidents.filter(affected_group__name__icontains=affected_group)
+            query["affected_group__name__in"]=affected_group
         if incident_nature:
-            incidents = incidents.filter(incident_nature__name__icontains=incident_nature)
+            query["incident_nature__name__in"]=incident_nature
         if lga:
-            incidents = incidents.filter(lga__lga__icontains=lga)
+            query["lga__lga__in"]=lga
         if state:
-            incidents = incidents.filter(state__state__icontains=state)
+            query["state__state__in"]=state
         # if city:
-        #     incidents = incidents.filter(city__city__icontains=city)
+        #     query["city__city__icontains"]=city
+
+        incidents = Incident.objects.filter(**query)
         
         serializer = self.serializer_class(incidents, many=True)
         return api_response("Incidents fetched", serializer.data, True, 200)

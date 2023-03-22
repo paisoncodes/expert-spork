@@ -9,7 +9,7 @@ from sendgrid.helpers.mail import *
 
 from notifications.models import Messages, Emails
 
-from subscription.models import Subscription
+from subscription.models import EXPIRED, Subscription
 
 from datetime import datetime
 
@@ -97,12 +97,24 @@ def send_mail(receiver:str, subject:str, body:str) -> None:
         subject=subject,
     )
 
-from django.db import models
-from django.db.models.functions import ExtractMonth
+def check_subscription_status():
+    try:
+        print("got to function")
+        subscriptions = Subscription.objects.all().exclude(status=EXPIRED)
+        import pytz
+        utc=pytz.UTC
+        
+        for subscription in subscriptions:
+            if subscription.expiry_date.replace(tzinfo=utc) <= (datetime.now()).replace(tzinfo=utc):
+                subscription.status = EXPIRED
+                subscription.save()
+                print("function ran")
+            else:
+                print("function failed")
+        print("exits function")
+    except Exception as e:
+        import logging
+        logging.exception(str(e))
 
-# queryset = Subscription.objects.filter(id=1).annotate(
-#     diff=models.ExpressionWrapper(
-#         models.F('created_at') - datetime.now(), output_field=models.DurationField())
-#     ).annotate(months=ExtractMonth('diff'))
 
-# print(queryset)
+

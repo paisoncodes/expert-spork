@@ -9,11 +9,20 @@ from accounts_profile.serializers import IndustrySerializer, LgaSerializer, Stat
 from incident.models import Advisory, AffectedGroup, AlertType, Impact, IncidentNature, IncidentType, PrimaryThreatActor, ThreatLevel
 from incident.serializers import AdvisorySerializer, AffectedGroupSerializer, AlertTypeSerializer, ImpactSerializer, IncidentNatureSerializer, PrimaryThreatActorSerializer, ThreatLevelSerializer
 from role.models import Role
-from utils.utils import api_response
+from utils.schedulers import scheduler, subscription_trigger
+from utils.utils import api_response, check_subscription_status
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
+def start_job():
+    scheduler.add_job(
+        check_subscription_status,
+        trigger=subscription_trigger,
+        name="Check Subscription Status",
+    )
+    scheduler.start()
 
+start_job()
 
 @api_view(["GET"])
 def populate_state(request):
@@ -457,10 +466,12 @@ def add_superadmin(request):
         email = request.data['email']
         data = {
             "email": email,
-            "password": "admin"
+            "password": "admin",
+            "email_verified": True,
+            "phone_verified": True
         }
         user = User.objects.create_superuser(**data)
-        role = Role.objects.filter(name__iexact="Aquiline Admin").first()
+        role, created = Role.objects.get_or_create(name__iexact="Aquiline Admin")
         UserProfile.objects.create(user=user, role=role)
         return api_response("Success", {}, True, 201)
     except Exception as e:

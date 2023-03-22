@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from django.db import models
 from accounts.models import BaseModel, User
 from accounts_profile.models import State
-from incident.models import Advisory, AffectedGroup, AlertType, Impact, IncidentNature, PrimaryThreatActor, ThreatLevel
+from incident.models import AffectedGroup, AlertType, Impact, IncidentNature, PrimaryThreatActor, ThreatLevel
 # Create your models here.
 
 
@@ -39,13 +39,13 @@ class Subscription(models.Model):
         (EMPTY, EMPTY), (INVOICE, INVOICE), (PAID, PAID)
     )
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
-    alert_type = models.ManyToManyField(AlertType, null=True)
-    state = models.ManyToManyField(State, null=True)
-    incident_nature = models.ManyToManyField(IncidentNature, null=True)
-    primary_threat_actor = models.ManyToManyField(PrimaryThreatActor, null=True)
-    impact = models.ManyToManyField(Impact, null=True)
-    threat_level = models.ManyToManyField(ThreatLevel, null=True)
-    affected_groups = models.ManyToManyField(AffectedGroup, null=True)
+    alert_type = models.ManyToManyField(AlertType)
+    state = models.ManyToManyField(State)
+    incident_nature = models.ManyToManyField(IncidentNature)
+    primary_threat_actor = models.ManyToManyField(PrimaryThreatActor)
+    impact = models.ManyToManyField(Impact)
+    threat_level = models.ManyToManyField(ThreatLevel)
+    affected_groups = models.ManyToManyField(AffectedGroup)
     number_of_users = models.IntegerField(default=1)
     amount = models.IntegerField(default=0)
     duration = models.IntegerField(default=1)

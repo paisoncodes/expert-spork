@@ -83,7 +83,7 @@ class Incident(BaseModel):
     threat_level = models.ForeignKey(ThreatLevel, on_delete=models.SET_NULL, null=True, blank=True)
     impact = models.ForeignKey(Impact, on_delete=models.SET_NULL, null=True, blank=True)
     primary_threat_actor = models.ForeignKey(PrimaryThreatActor, on_delete=models.SET_NULL, null=True, blank=True)
-    affected_groups = models.ManyToManyField(AffectedGroup, null=True)
+    affected_groups = models.ManyToManyField(AffectedGroup)
     details = models.TextField(null=True, blank=True)
     address = models.CharField(max_length=225, default=str)
     lga = models.ForeignKey(Lga, on_delete=models.CASCADE)
