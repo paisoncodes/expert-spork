@@ -22,7 +22,7 @@ class SubscriptionViewSerializer(serializers.ModelSerializer):
     impact = serializers.StringRelatedField(many=True)
     threat_level = serializers.StringRelatedField(many=True)
     affected_groups = serializers.StringRelatedField(many=True)
-    customer = serializers.StringRelatedField(many=True)
+    customer = serializers.StringRelatedField()
     class Meta:
         model = Subscription
         fields = "__all__"

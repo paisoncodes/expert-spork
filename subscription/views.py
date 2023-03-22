@@ -17,7 +17,7 @@ class SubscriptionView(GenericAPIView):
     serializer_class = SubscriptionViewSerializer
 
     def get(self, request):
-        subscriptions = Subscription.objects.filter(user=request.user)
+        subscriptions = Subscription.objects.filter(customer=request.user)
         serializer = SubscriptionViewSerializer(subscriptions, many=True)
         return api_response("Subscriptions fetched", serializer.data, True, 200)
 
