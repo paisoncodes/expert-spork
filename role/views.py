@@ -55,7 +55,6 @@ class RoleRetrieveUpdateDeleteView(GenericAPIView):
     
     def delete(self, request, role_id):
         if role:= Role.objects.filter(id=role_id).first():
-            role = get_object_or_404(Role, id=role_id)
             role.delete()
             return api_response("Role deleted", None, True, 204)
         return api_response("Role not found", None, False, 404)

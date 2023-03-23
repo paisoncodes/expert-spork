@@ -471,7 +471,7 @@ def add_superadmin(request):
             "phone_verified": True
         }
         user = User.objects.create_superuser(**data)
-        role, created = Role.objects.get_or_create(name__iexact="Aquiline Admin")
+        role= Role.objects.get(name__iexact="Aquiline Admin")
         UserProfile.objects.create(user=user, role=role)
         return api_response("Success", {}, True, 201)
     except Exception as e:

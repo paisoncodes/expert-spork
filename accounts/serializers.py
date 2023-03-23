@@ -19,7 +19,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         first_name = validated_data.pop("first_name")
         last_name = validated_data.pop("last_name")
 
-        role = Role.objects.get(name__iexact="Default Role")
+        role = Role.objects.get(name__iexact="Individual User")
 
         user = User.objects.create_user(**validated_data)
 
@@ -46,7 +46,7 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
         industry = Industry.objects.filter(name__iexact=validated_data.pop("industry")).first()
         state = State.objects.filter(state__iexact=state).first()
         company_name = validated_data.pop('company_name')
-        role = Role.objects.get(name__iexact="Default Role")
+        role = Role.objects.get(name__iexact="Company Admin")
         user = User.objects.create_user(**validated_data)
         user.user_type = User.UserType.COMPANY
         user.save()

@@ -288,7 +288,7 @@ class AllIncidentView(GenericAPIView):
         serializer = self.serializer_class(incidents, many=True)
         return api_response("Incidents fetched", serializer.data, True, 200)
 
-class IncidentRetrieveUpdateView(GenericAPIView):
+class IncidentRetrieveUpdateDeleteView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
@@ -304,6 +304,12 @@ class IncidentRetrieveUpdateView(GenericAPIView):
             return api_response(serializer.errors, {}, False, 400)
         serializer.update(instance=incident, validated_data=serializer.validated_data)
         return api_response("Incident updated", serializer.data, True, 202)
+    
+    def delete(self, request, incident_id):
+        if incident:= Incident.objects.filter(id=incident_id).first():
+            incident.delete()
+            return api_response("Incident deleted", {}, True, 200)
+        return api_response("Incident not found", None, False, 404)
 
 class AssignTickets(GenericAPIView, IsVerifiedAndActive):
     permission_classes = (IsAdminUser,)
