@@ -8,6 +8,9 @@ class RolePermisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = RolePermission
         fields = "__all__"
+        read_only_fields = [
+            "id"
+        ]
 
 
 class RoleSerializer(serializers.ModelSerializer):

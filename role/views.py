@@ -50,7 +50,26 @@ class RoleRetrieveUpdateView(GenericAPIView):
         if serializer.is_valid():
             serializer.update(instance=role, validated_data=serializer.validated_data)
             return api_response("Role updated", serializer.data, True, 202)
-        return api_response(serializer.errors, {}, False, 400)
+        return api_response("ERROR", serializer.errors, False, 400)
+
+class RoleRetrieveUpdateView(GenericAPIView):
+    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
+    serializer_class = RoleSerializer
+
+    def get(self, request, role_id):
+        role = get_object_or_404(Role, id=role_id)
+        serializer = self.serializer_class(role)
+        return api_response("Role retrieved", serializer.data, True, 200)
+
+
+    def put(self, request, role_id):
+        role = get_object_or_404(Role, id=role_id, owner=request.user)
+        serializer = self.serializer_class(request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.update(instance=role, validated_data=serializer.validated_data)
+            return api_response("Role updated", serializer.data, True, 202)
+        return api_response("ERROR", serializer.errors, False, 400)
     
 class RolePermissionsView(GenericAPIView):
     permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
@@ -60,3 +79,43 @@ class RolePermissionsView(GenericAPIView):
         permissions = RolePermission.objects.all()
         serializer = self.serializer_class(permissions, many=True)
         return api_response("Permissions fetched", serializer.data, True, 200)
+    
+    def post(self, request):
+        data = request.data
+        if permission:= RolePermission.objects.filter(name__iexact=data["name"]).first():
+            serializer = self.serializer_class(permission)
+            return api_response("Permission with this name exists. Try updating it.", serializer.data, True, 200)
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            permission = RolePermission.objects.all().last()
+            serializer = self.serializer_class(permission)
+            return api_response("Permissions saved", serializer.data, True, 201)
+        else:
+            return api_response("ERROR", serializer.errors, False, 400)
+
+class RolePermissionRetrieveUpdateDeleteView(GenericAPIView):
+    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
+    serializer_class = RolePermisionSerializer
+
+    def get(self, request, permission_id):
+        permission = get_object_or_404(RolePermission, id=permission_id)
+        serializer = self.serializer_class(permission)
+        return api_response("Permission retrieved", serializer.data, True, 200)
+
+
+    def put(self, request, permission_id):
+        permission = get_object_or_404(RolePermission, id=permission_id)
+        serializer = self.serializer_class(request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.update(instance=permission, validated_data=serializer.validated_data)
+            return api_response("Permission updated", serializer.data, True, 202)
+        return api_response("ERROR", serializer.errors, False, 400)
+    
+    def delete(self, request, permission_id):
+        if permission:= RolePermission.objects.filter(id=permission_id).first():
+            permission.delete()
+            return api_response("Permission deleted", None, True, 204)
+        return api_response("Permission not found", None, False, 404)
+    
