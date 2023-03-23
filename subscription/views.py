@@ -7,7 +7,7 @@ from subscription.models import Invoice, Package, Subscription
 
 from subscription.serializers import InvoiceSerializer, InvoiceViewSerializer, PackageSerializer, SubscriptionSerializer, SubscriptionViewSerializer
 
-from utils.utils import api_response
+from utils.utils import api_response, send_mail
 from django.shortcuts import get_object_or_404
 
 
@@ -32,7 +32,13 @@ class SubscriptionCreate(GenericAPIView):
         if serializer.is_valid():
             serializer.save()
             customer = serializer.data["customer"]
-            Notification.objects.create(title="Subscription Added successfully.", user=User.objects.get(id=customer), object_id=serializer.data["id"])
+            user = User.objects.get(id=customer)
+            Notification.objects.create(title="Subscription Added successfully.", user=user, object_id=serializer.data["id"])
+            subject = "Subscription Added"
+
+            message = "Subscription Added successfully"
+
+            send_mail(user.email, subject=subject, body=message)
             return api_response("Subscription successful", serializer.data, True, 201)
         
         return api_response(serializer.errors, {}, False, 400)

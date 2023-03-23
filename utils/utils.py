@@ -99,7 +99,6 @@ def send_mail(receiver:str, subject:str, body:str) -> None:
 
 def check_subscription_status():
     try:
-        print("got to function")
         subscriptions = Subscription.objects.all().exclude(status=EXPIRED)
         import pytz
         utc=pytz.UTC
@@ -109,9 +108,11 @@ def check_subscription_status():
                 subscription.status = EXPIRED
                 subscription.save()
                 Notification.objects.create(title=f"You reported an incident.", user=subscription.customer, object_id=subscription.id)
-            else:
-                print("function failed")
-        print("exits function")
+                subject = "Subscription Expireed"
+
+                message = "Your subscription has expired."
+
+                send_mail(subscription.customer.email, subject=subject, body=message)
     except Exception as e:
         import logging
         logging.exception(str(e))

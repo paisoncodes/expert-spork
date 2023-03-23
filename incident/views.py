@@ -9,7 +9,7 @@ from accounts.permissions import IsCompanyAdmin, IsVerifiedAndActive
 from incident.serializers import IncidentSerializer, IncidentViewSerializer, TicketAssigneeSerializer, TicketReplySerializer, TicketSerializer
 from notifications.models import Notification
 from subscription.models import ACTIVE, Subscription
-from utils.utils import api_response
+from utils.utils import api_response, send_mail
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.db.models import Q
@@ -119,9 +119,19 @@ class IncidentView(GenericAPIView):
                 for subscription in subscriptions:
                     print(subscription)
                     if subscription.customer == request.user:
-                        Notification.objects.create(title=f"You reported an incident.", user=subscription.customer, object_id=serializer.data["id"])
+                        Notification.objects.create(title="You reported an incident.", user=subscription.customer, object_id=serializer.data["id"])
+                        subject = "Incident Report"
+
+                        message = "You reported an incident."
+
+                        send_mail(subscription.customer.email, subject=subject, body=message)
                     else:
-                        Notification.objects.create(title=f"Incident reported. You're getting this because your subscription includes this incident", user=subscription.customer, object_id=serializer.data["id"])
+                        Notification.objects.create(title="Incident reported. You're getting this because your subscription includes this incident.", user=subscription.customer, object_id=serializer.data["id"])
+                        subject = "Incident Report"
+
+                        message = "Incident reported. You're getting this because your subscription includes this incident"
+
+                        send_mail(subscription.customer.email, subject=subject, body=message)
 
             return api_response("Incident created successfully",serializer.data, True, 201)
         else:
