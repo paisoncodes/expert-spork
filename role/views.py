@@ -33,7 +33,8 @@ class RoleView(GenericAPIView):
        else:
            return api_response("ERROR", serializer.errors, False, 400)
 
-class RoleRetrieveUpdateView(GenericAPIView):
+
+class RoleRetrieveUpdateDeleteView(GenericAPIView):
     permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
     serializer_class = RoleSerializer
 
@@ -44,32 +45,20 @@ class RoleRetrieveUpdateView(GenericAPIView):
 
 
     def put(self, request, role_id):
-        role = get_object_or_404(Role, id=role_id, owner=request.user)
-        serializer = self.serializer_class(request.data, partial=True)
-
-        if serializer.is_valid():
-            serializer.update(instance=role, validated_data=serializer.validated_data)
-            return api_response("Role updated", serializer.data, True, 202)
-        return api_response("ERROR", serializer.errors, False, 400)
-
-class RoleRetrieveUpdateView(GenericAPIView):
-    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
-    serializer_class = RoleSerializer
-
-    def get(self, request, role_id):
         role = get_object_or_404(Role, id=role_id)
-        serializer = self.serializer_class(role)
-        return api_response("Role retrieved", serializer.data, True, 200)
-
-
-    def put(self, request, role_id):
-        role = get_object_or_404(Role, id=role_id, owner=request.user)
         serializer = self.serializer_class(request.data, partial=True)
 
         if serializer.is_valid():
             serializer.update(instance=role, validated_data=serializer.validated_data)
             return api_response("Role updated", serializer.data, True, 202)
         return api_response("ERROR", serializer.errors, False, 400)
+    
+    def delete(self, request, role_id):
+        if role:= Role.objects.filter(id=role_id).first():
+            role = get_object_or_404(Role, id=role_id)
+            role.delete()
+            return api_response("Role deleted", None, True, 204)
+        return api_response("Role not found", None, False, 404)
     
 class RolePermissionsView(GenericAPIView):
     permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
