@@ -22,28 +22,16 @@ class Profile(GenericAPIView):
         data = serializer.data
         data["phone_number"] = user.phone_number
         data["phone_verified"] = user.phone_verified
-        return Response(
-            {
-                "message": "Profile Gotten",
-                "data": data,
-                "status": True,
-            },
-            status=status.HTTP_200_OK,
-        )
+        return api_response("Profile fetched", data, True, 200)
 
     def put(self, request):
         user = request.user
         profile, created = UserProfile.objects.get_or_create(user=user)
         serializer = self.serializer_class(data=request.data, partial=True)
         if not serializer.is_valid():
-            return Response(
-                {"message": serializer.errors, "status": False},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return api_response("ERROR", serializer.errors, False, 400)
         serializer.update(instance=profile, validated_data=serializer.validated_data)
-        return Response(
-            {"message": "Update Successful", "status": True}, status=status.HTTP_200_OK
-        )
+        return api_response("Profile updated", serializer.data, True, 202)
 
 class KycUpdateView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
@@ -54,14 +42,9 @@ class KycUpdateView(GenericAPIView):
         profile = get_object_or_404(UserProfile, user=user)
         serializer = self.serializer_class(data=request.data)
         if not serializer.is_valid():
-                return Response(
-                    {"message": serializer.errors, "status": False},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            return api_response("ERROR", serializer.errors, False, 400)
         serializer.update(instance=profile, validated_data=serializer.validated_data)
-        return Response(
-            {"message": "Update Successful", "status": True}, status=status.HTTP_200_OK
-        )
+        return api_response("KYC Added", {}, True, 202)
 
 class CompanyProfileView(GenericAPIView):
     permission_classes = [IsCompanyAdmin, IsVerifiedAndActive]
@@ -79,16 +62,11 @@ class CompanyProfileView(GenericAPIView):
         company_profile, created = CompanyProfile.objects.get_or_create(user=user)
         serializer = self.serializer_class(data=request.data, partial=True)
         if not serializer.is_valid():
-            return Response(
-                {"message": serializer.errors, "status": False},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return api_response("ERROR", serializer.errors, False, 400)
         serializer.update(
             instance=company_profile, validated_data=serializer.validated_data
         )
-        return Response(
-            {"message": "Update Successful", "status": True}, status=status.HTTP_200_OK
-        )
+        return api_response("Profile Updated", serializer.data, True, 202)
 
 class LocationView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
@@ -111,7 +89,8 @@ class LocationView(GenericAPIView):
             serializer.save()
             return api_response("Location added successfully", serializer.data, True, 201)
         
-        return api_response("Failed", serializer.errors, False, 400)
+        return api_response("ERROR", serializer.errors, False, 400)
+    
 class LocationUpdateDeleteView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = LocationSerializer
@@ -123,7 +102,7 @@ class LocationUpdateDeleteView(GenericAPIView):
         if serializer.is_valid():
             serializer.update(instance=location, validated_data=serializer.data)
             return api_response("Locations fetched", serializer.data, True, 200)
-        return api_response("An error occured", serializer.errors, False, 400)
+        return api_response("ERROR", serializer.errors, False, 400)
     
     def delete(self, request, location_id):
         user = request.user
@@ -141,9 +120,10 @@ class CityView(GenericAPIView):
 
     def get(self, request):
         state = request.GET.get('state')
+        if not state:
+            return api_response("Invalid state", {}, False, 400)
         cities = City.objects.filter(state__state__icontains=state)
         serializer = self.serializer_class(cities, many=True)
-
         return api_response("Cities fetched", serializer.data, True, 200)
 
 class StateView(GenericAPIView):
