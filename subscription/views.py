@@ -13,17 +13,23 @@ from django.shortcuts import get_object_or_404
 
 
 class SubscriptionView(GenericAPIView):
-    permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = SubscriptionViewSerializer
 
     def get(self, request):
-        subscriptions = Subscription.objects.filter(customer=request.user)
+        if request.user.is_superuser:
+            customer_id = request.GET.get("customer_id", None)
+            if not customer_id:
+                return api_response("Invalid customer", {}, False, 400)
+            subscriptions = Subscription.objects.filter(customer__id=customer_id)
+        else:
+            subscriptions = Subscription.objects.filter(customer=request.user)
         serializer = SubscriptionViewSerializer(subscriptions, many=True)
         return api_response("Subscriptions fetched", serializer.data, True, 200)
 
 
 class SubscriptionCreate(GenericAPIView):
-    permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = SubscriptionSerializer
 
     def post(self, request):
@@ -44,11 +50,17 @@ class SubscriptionCreate(GenericAPIView):
         return api_response(serializer.errors, {}, False, 400)
 
 class UserSubscriptionRetrieveView(GenericAPIView):
-    permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = SubscriptionViewSerializer
 
-    def get(self, request):
-        subscription = Subscription.objects.filter(customer=request.user).last()
+    def get(self, request, subscription_id):
+        if request.user.is_superuser:
+            customer_id = request.GET.get("customer_id", None)
+            if not customer_id:
+                return api_response("Invalid customer", {}, False, 400)
+            subscription = Subscription.objects.filter(id=subscription_id, customer__id=customer_id).first()
+        else:
+            subscription = Subscription.objects.filter(id=subscription_id, customer=request.user).first()
         serializer = self.serializer_class(subscription)
         return api_response("Subscription fetched", serializer.data, True, 200)
 
@@ -99,10 +111,13 @@ class InvoiceView(GenericAPIView):
     serializer_class = InvoiceViewSerializer
 
     def get(self, request):
-        customer = request.GET.get("customer_id")
-        invoices = Invoice.objects.all()
-        if customer:
-            invoices=invoices.filter(customer__id=customer)
+        if request.user.is_superuser:
+            customer_id = request.GET.get("customer_id", None)
+            if not customer_id:
+                return api_response("Invalid customer", {}, False, 400)
+            invoices = Invoice.objects.filter(customer__id=customer_id)
+        else:
+            invoices=Invoice.objects.filter(customer=request.user)
 
         serializer = self.serializer_class(invoices, many=True)
         return api_response("Invoices fetched", serializer.data, True, 200)
@@ -124,6 +139,12 @@ class InvoiceRetrieveView(GenericAPIView):
     serializer_class = InvoiceViewSerializer
 
     def get(self, request, invoice_id):
-        invoice = get_object_or_404(Invoice, id=invoice_id)
+        if request.user.is_superuser:
+            customer_id = request.GET.get("customer_id", None)
+            if not customer_id:
+                return api_response("Invalid customer", {}, False, 400)
+            invoice = Invoice.objects.filter(id=invoice_id, customer__id=customer_id).first()
+        else:
+            invoice = Invoice.objects.filter(id=invoice_id, customer=request.user).first()
         serializer = self.serializer_class(invoice)
         return api_response("Invoice fetched", serializer.data, True, 200)
