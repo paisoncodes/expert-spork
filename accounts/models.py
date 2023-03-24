@@ -15,13 +15,14 @@ class BaseModel(models.Model):
 
 class User(AbstractUser, BaseModel):
     class AuthType(models.TextChoices):
-        EMAIL = "email", "Email"
-        GOOGLE = "google", "Google"
-        ADDED = "added", "Added"
+        EMAIL = "email", "EMAIL"
+        GOOGLE = "google", "GOOGLE"
+        ADDED = "added", "ADDED"
 
     class UserType(models.TextChoices):
-        CUSTOMER = "client", "Client"
-        COMPANY = "company", "Company"
+        CUSTOMER = "client", "CLIENT"
+        COMPANY = "company", "COMPANY"
+        ADMIN = "admin", "ADMIN"
 
     email = models.EmailField(_("email address"), unique=True)
     username = models.CharField(max_length=225, blank=True, null=True)

@@ -1,19 +1,16 @@
-from email import message
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Q
-from django.template.loader import render_to_string
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password, make_password
 
 from accounts_profile.models import CompanyProfile, CompanyUser, Location, UserProfile
-from accounts_profile.serializers import CompanyUserSerializer, UserProfileSerializer
+from accounts_profile.serializers import UserProfileSerializer
 from role.models import Role
-from role.serializers import RoleSerializer
-from .permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
+from role.serializers import RoleViewSerializer
+from .permissions import IsVerifiedAndActive
 
 # from sms.sendchamp import send_sms
 from .serializers import (
@@ -56,7 +53,7 @@ class CustomerSignUp(GenericAPIView):
             data = {'message': "User account creation successful", 'otp': otp}
             return api_response("Registration successful", data, True, 201)
         else:
-            return api_response(serializer.errors, {}, False, 400)
+            return api_response("ERROR", serializer.errors, False, 400)
 class CompanySignUp(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = CompanyRegistrationSerializer
@@ -83,10 +80,10 @@ class CompanySignUp(GenericAPIView):
             data = {'message': "User account creation successful", 'otp': otp}
             return api_response("Registration successful", data, True, 201)
         else:
-            return api_response(serializer.errors, {}, False, 400)
+            return api_response("ERROR", serializer.errors, False, 400)
 
 class AddUser(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = AddUserSerializer
 
     def post(self, request):
@@ -112,14 +109,21 @@ class AddUser(GenericAPIView):
             send_mail(user.email, "Account creation", message)
             return api_response("User added successfully", {}, True, 200)
         else:
-            return api_response(serializer.errors, {}, False, 400)
+            return api_response("ERROR", serializer.errors, False, 400)
 
 class CompanyUsersView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = UserProfileSerializer
 
     def get(self, request):
-        company = CompanyProfile.objects.filter(user=request.user).first()
+        if request.user.is_superadmin:
+            company_name = request.GET.get('company_name', None)
+            if not company_name:
+                return api_response("ERROR", {'message': 'Invalid company name'}, False, 400)
+            else:
+                company = get_object_or_404(CompanyProfile, company_name=company_name)
+        else:
+            company = CompanyProfile.objects.filter(user=request.user).first()
         company_users = CompanyUser.objects.filter(company=company)
         data = {
             "company_name": company.company_name,
@@ -137,7 +141,7 @@ class CompanyUsersView(GenericAPIView):
         return api_response("Users fetched", data, True, 200)
 
 class AllUsersView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = UserProfileSerializer
 
     def get(self, request):
@@ -155,7 +159,7 @@ class AllUsersView(GenericAPIView):
         return api_response("Users fetched", data, True, 200)
 
 class AllCustomersView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = UserProfileSerializer
 
     def get(self, request):
@@ -173,7 +177,7 @@ class AllCustomersView(GenericAPIView):
         return api_response("Users fetched", data, True, 200)
 
 class AllCompaniesView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = UserProfileSerializer
 
     def get(self, request):
@@ -187,15 +191,12 @@ class AllCompaniesView(GenericAPIView):
                 user_profile = UserProfile.objects.filter(user__email=company_user.user.email).first()
                 user_data = (self.serializer_class(user_profile)).data
                 user_data["id"] = company_user.user.id
-                if user_profile:
-                    user_data["has_profile"] = True
-                else:
-                    user_data["has_profile"] = False
                 data[company.company_name]["users"].append(user_data)
             return api_response("Users fetched", data, True, 200)
 
+
 class AdminCompanyUserEditView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = UserProfileSerializer
 
     def put(self, request, user_id):
@@ -211,7 +212,7 @@ class AdminCompanyUserEditView(GenericAPIView):
         if serializer.is_valid():
             serializer.update(instance=user_profile, validated_data=serializer.validated_data)
             return api_response("Update successful", {}, True, 200)
-        return api_response("An error occured", serializer.errors, False, 400)
+        return api_response("ERROR", serializer.errors, False, 400)
 
 
 class VerifyOtp(GenericAPIView):
@@ -377,11 +378,8 @@ class Login(GenericAPIView):
                     data["last_name"] = user_profile.last_name
                     data["kyc_uploaded"] = True if user_profile.kyc else False
                     data["is_verified"] = user.email_verified
-                    data["role"] = RoleSerializer(user_profile.role).data
-                    # data["permission_name"] = user_profile.role.permissions
+                    data["role"] = RoleViewSerializer(user_profile.role).data
                 if company_user := CompanyUser.objects.filter(user=user).first():
-                    data["is_company_user"] = True 
-                    data["is_company_admin"] = company_user.is_company_admin
                     data["company_name"] = company_user.company.company_name
                 return api_response("Login Successful", data, True, 200)
     

@@ -468,7 +468,9 @@ def add_superadmin(request):
             "email": email,
             "password": "admin",
             "email_verified": True,
-            "phone_verified": True
+            "phone_verified": True,
+            "user_type": User.UserType.ADMIN,
+            "auth_type": User.AuthType.EMAIL
         }
         user = User.objects.create_superuser(**data)
         role= Role.objects.get(name__iexact="Aquiline Admin")

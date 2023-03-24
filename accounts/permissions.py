@@ -71,7 +71,7 @@ class IsCompanyAdminOrBaseAdmin(BasePermission):
 
 class IsVerifiedAndActive(BasePermission):
     def has_permission(self, request, view):
-        return bool(request.user.email_verified == True or request.user.is_superuser == True or UserProfile.objects.get(user=request.user).disabled == False or UserProfile.objects.get(user=request.user).deleted == False)
+        return bool(request.user.email_verified == True and UserProfile.objects.get(user=request.user).disabled == False)
 
 permissions = [
     {
