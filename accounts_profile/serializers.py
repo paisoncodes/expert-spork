@@ -100,3 +100,6 @@ class LgaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lga
         fields = "__all__"
+
+class RoleUpdateSerializer(serializers.Serializer):
+    role_name = serializers.CharField(required=True)

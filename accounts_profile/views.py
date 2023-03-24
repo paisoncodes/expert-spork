@@ -5,9 +5,10 @@ from accounts_profile.models import City, CompanyProfile, CompanyUser, Location,
 from rest_framework.response import Response
 from rest_framework import status
 
-from accounts_profile.serializers import CitySerializer, CompanyProfileSerializer, CompanyProfileViewSerializer, KycUpdateSerializer, LocationSerializer, LocationViewSerializer, StateSerializer, UserProfileSerializer
+from accounts_profile.serializers import CitySerializer, CompanyProfileSerializer, CompanyProfileViewSerializer, KycUpdateSerializer, LocationSerializer, LocationViewSerializer, RoleUpdateSerializer, StateSerializer, UserProfileSerializer
 from accounts.models import User
 from accounts.permissions import IsCompanyAdmin, IsVerifiedAndActive
+from role.models import Role
 from utils.utils import api_response
 
 
@@ -136,3 +137,18 @@ class StateView(GenericAPIView):
 
         return api_response("States fetched", serializer.data, True, 200)
 
+class ChangeUserRoleView(GenericAPIView):
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
+    serializer_class = RoleUpdateSerializer
+
+    def put(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        profile = get_object_or_404(UserProfile, user=user)
+        serializer = self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            return api_response("ERROR", serializer.errors, False, 400)
+        role_name = serializer.data["role_name"]
+        role = Role.objects.get(name__iexact=role_name)
+        profile.role = role
+        profile.save()
+        return api_response("Role Updated", {}, True, 202)
