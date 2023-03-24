@@ -1,7 +1,9 @@
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from accounts.models import User
 
-from accounts.permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
+from accounts.permissions import IsVerifiedAndActive
+from accounts_profile.models import UserProfile
 from role.models import Role, RolePermission
 from role.serializers import RolePermisionSerializer, RoleSerializer, RoleViewSerializer
 
@@ -11,7 +13,7 @@ from django.shortcuts import get_object_or_404
 
 
 class RoleView(GenericAPIView):
-    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = RoleSerializer
 
     def get(self, request):
@@ -35,7 +37,7 @@ class RoleView(GenericAPIView):
 
 
 class RoleRetrieveUpdateDeleteView(GenericAPIView):
-    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = RoleSerializer
 
     def get(self, request, role_id):
@@ -60,7 +62,7 @@ class RoleRetrieveUpdateDeleteView(GenericAPIView):
         return api_response("Role not found", None, False, 404)
     
 class RolePermissionsView(GenericAPIView):
-    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = RolePermisionSerializer
 
     def get(self, request):
@@ -82,8 +84,17 @@ class RolePermissionsView(GenericAPIView):
         else:
             return api_response("ERROR", serializer.errors, False, 400)
 
+class UserRoleAndPermissionsView(GenericAPIView):
+    permission_classes = (IsAuthenticated, IsAdminUser)
+    serializer_class = RoleViewSerializer
+    def get(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        user_profile = get_object_or_404(UserProfile, user=user)
+        serializer = self.serializer_class(user_profile.role)
+        return api_response("User Role fetched", serializer.data, True, 200)
+
 class RolePermissionRetrieveUpdateDeleteView(GenericAPIView):
-    permission_classes = (IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive)
+    permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = RolePermisionSerializer
 
     def get(self, request, permission_id):
