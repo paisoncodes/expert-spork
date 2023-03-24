@@ -298,15 +298,28 @@ class IncidentRetrieveUpdateDeleteView(GenericAPIView):
         return api_response("Incident retrieved", serializer.data, True, 200)
     
     def put(self, request, incident_id):
-        incident, created = Incident.objects.get_or_create(owner=request.user, id=incident_id)
-        serializer = self.serializer_class(data=request.data, partial=True)
-        if not serializer.is_valid():
-            return api_response("ERROR", serializer.errors, False, 400)
-        serializer.update(instance=incident, validated_data=serializer.validated_data)
-        return api_response("Incident updated", serializer.data, True, 202)
+        if incident:= Incident.objects.filter(id=incident_id).first():
+            if incident_owner_company := CompanyUser.objects.filter(user=incident.owner).first():
+                is_company_admin = CompanyUser.objects.filter(company=incident_owner_company.company, is_company_admin=True, user=request.user).exists()
+            else:
+                is_company_admin = False
+            if request.user != incident.owner or not request.user.is_superuser or not is_company_admin:
+                return api_response("You are not allowed to edit this incident", {}, False, 400)
+            serializer = self.serializer_class(data=request.data, partial=True)
+            if not serializer.is_valid():
+                return api_response("ERROR", serializer.errors, False, 400)
+            serializer.update(instance=incident, validated_data=serializer.validated_data)
+            return api_response("Incident updated", serializer.data, True, 202)
+        return api_response("Incident not found", {}, False, 404)
     
     def delete(self, request, incident_id):
         if incident:= Incident.objects.filter(id=incident_id).first():
+            if incident_owner_company := CompanyUser.objects.filter(user=incident.owner).first():
+                is_company_admin = CompanyUser.objects.filter(company=incident_owner_company.company, is_company_admin=True, user=request.user).exists()
+            else:
+                is_company_admin = False
+            if request.user != incident.owner or not request.user.is_superuser or not is_company_admin:
+                return api_response("You are not allowed to delete this incident", {}, False, 400)
             incident.delete()
             return api_response("Incident deleted", {}, True, 200)
         return api_response("Incident not found", {}, False, 404)
