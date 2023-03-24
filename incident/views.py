@@ -135,7 +135,7 @@ class IncidentView(GenericAPIView):
 
             return api_response("Incident created successfully",serializer.data, True, 201)
         else:
-            return api_response(serializer.errors, {}, False, 400)
+            return api_response("ERROR", serializer.errors, False, 400)
 
 
 class CompanyIncidents(GenericAPIView):
@@ -301,7 +301,7 @@ class IncidentRetrieveUpdateDeleteView(GenericAPIView):
         incident, created = Incident.objects.get_or_create(owner=request.user, id=incident_id)
         serializer = self.serializer_class(data=request.data, partial=True)
         if not serializer.is_valid():
-            return api_response(serializer.errors, {}, False, 400)
+            return api_response("ERROR", serializer.errors, False, 400)
         serializer.update(instance=incident, validated_data=serializer.validated_data)
         return api_response("Incident updated", serializer.data, True, 202)
     
@@ -309,7 +309,7 @@ class IncidentRetrieveUpdateDeleteView(GenericAPIView):
         if incident:= Incident.objects.filter(id=incident_id).first():
             incident.delete()
             return api_response("Incident deleted", {}, True, 200)
-        return api_response("Incident not found", None, False, 404)
+        return api_response("Incident not found", {}, False, 404)
 
 class AssignTickets(GenericAPIView, IsVerifiedAndActive):
     permission_classes = (IsAdminUser,)
@@ -350,7 +350,7 @@ class TicketView(GenericAPIView):
             serializer.save()
             return api_response("Ticket registered successfully", serializer.data, True, 201)
         else:
-            return api_response(serializer.errors, {}, False, 400)
+            return api_response("ERROR", serializer.errors, False, 400)
 
 class TicketRetrieveUpdateView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
@@ -363,11 +363,11 @@ class TicketRetrieveUpdateView(GenericAPIView):
     
     def put(self, request, ticket_id):
         ticket, created = Ticket.objects.get_or_create(owner=request.user, id=ticket_id)
-        if "closed" in request.data.keys() and request.user.is_superuser == True:
-            return api_response("You are not permitted to close a ticket", {}, False, 400)
+        if "closed" in request.data.keys() and request.user != ticket.owner:
+            return api_response("You are not permitted to close this ticket", {}, False, 400)
         serializer = self.serializer_class(data=request.data, partial=True)
         if not serializer.is_valid():
-            return api_response(serializer.errors, {}, False, 400)
+            return api_response("ERROR", serializer.errors, False, 400)
         serializer.update(instance=ticket, validated_data=serializer.validated_data)
         return api_response("Ticket updated", serializer.data, True, 202)
 
@@ -390,10 +390,10 @@ class ReplyView(GenericAPIView):
             serializer.save()
             ticket= Ticket.objects.get(id=serializer.data["ticket"])
             if ticket.owner != request.user:
-                Notification.objects.create(title="Ticket has been responded to",user=ticket.owner, object_id=ticket.id)
+                Notification.objects.create(title="Ticket has been responded to.",user=ticket.owner, object_id=ticket.id)
             return api_response("Reply saved", serializer.data, True, 201)
         else:
-            return api_response(serializer.errors, {}, False, 400)
+            return api_response("ERROR", serializer.errors, False, 400)
 
 class ReplyUpdateView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
@@ -403,6 +403,6 @@ class ReplyUpdateView(GenericAPIView):
         reply, created = TicketReply.objects.get_or_create(user=request.user, id=reply_id)
         serializer = self.serializer_class(data=request.data, partial=True)
         if not serializer.is_valid():
-            return api_response(serializer.errors, {}, False, 400)
+            return api_response("ERROR", serializer.errors, False, 400)
         serializer.update(instance=reply, validated_data=serializer.validated_data)
         return api_response("Reply saved", serializer.data, True, 202)
