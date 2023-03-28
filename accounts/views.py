@@ -116,7 +116,7 @@ class CompanyUsersView(GenericAPIView):
     serializer_class = UserProfileSerializer
 
     def get(self, request):
-        if request.user.is_superadmin:
+        if request.user.is_superuser:
             company_name = request.GET.get('company_name', None)
             if not company_name:
                 return api_response("ERROR", {'message': 'Invalid company name'}, False, 400)
