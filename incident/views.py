@@ -198,7 +198,7 @@ class ApproveCompanyIncident(GenericAPIView):
     permission_classes = (IsCompanyAdmin,)
     serializer_class = IncidentSerializer
 
-    def get(self, request, incident_id):
+    def put(self, request, incident_id):
         incident = get_object_or_404(Incident, id=incident_id)
         incident.company_approved = True
         incident.save()
@@ -208,7 +208,7 @@ class ApproveCompanyIncident(GenericAPIView):
 class ApproveGeneralIncident(GenericAPIView):
     permission_classes = (IsAdminUser,)
     serializer_class = IncidentSerializer
-    def get(self, request, incident_id):
+    def put(self, request, incident_id):
         incident = get_object_or_404(Incident, id=incident_id)
         incident.admin_approved = True
         incident.save()
@@ -219,7 +219,7 @@ class UndoApproveCompanyIncident(GenericAPIView):
     permission_classes = (IsCompanyAdmin,)
     serializer_class = IncidentSerializer
 
-    def get(self, request, incident_id):
+    def put(self, request, incident_id):
         incident = get_object_or_404(Incident, id=incident_id)
         incident.company_approved = False
         incident.save()
@@ -229,7 +229,7 @@ class UndoApproveCompanyIncident(GenericAPIView):
 class UndoApproveGeneralIncident(GenericAPIView):
     permission_classes = (IsAdminUser,)
     serializer_class = IncidentSerializer
-    def get(self, request, incident_id):
+    def put(self, request, incident_id):
         incident = get_object_or_404(Incident, id=incident_id)
         incident.admin_approved = False
         incident.save()

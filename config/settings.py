@@ -216,7 +216,7 @@ REST_FRAMEWORK = {
 SWAGGER_SETTINGS = {
     "USE_SESSION_AUTH": False,
     "relative_paths": False,
-    "DISPLAY_OPERATION_ID": False,
+    'displayOperationId': True,
     "SECURITY_DEFINITIONS": {
         "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"},
     },
