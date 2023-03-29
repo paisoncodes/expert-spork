@@ -12,7 +12,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "payment_status",
-            "status"
+            "status",
+            "expiry_date",
         ]
 class SubscriptionViewSerializer(serializers.ModelSerializer):
     alert_type = serializers.StringRelatedField(many=True)
@@ -29,7 +30,8 @@ class SubscriptionViewSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "payment_status",
-            "status"
+            "status",
+            "expiry_date",
         ]
 
 class PackageSerializer(serializers.ModelSerializer):

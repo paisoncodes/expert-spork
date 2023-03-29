@@ -17,10 +17,10 @@ from django.db.models import Q
 
 state = openapi.Parameter('state', openapi.IN_QUERY,
                              details="State you want to filter by.",
-                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
 lga = openapi.Parameter('lga', openapi.IN_QUERY,
                              details="Lga you want to filter by.",
-                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
 search = openapi.Parameter('search', openapi.IN_QUERY,
                              details="Parameter you want to filter by.",
                              type=openapi.TYPE_STRING)
@@ -29,22 +29,22 @@ date = openapi.Parameter('date', openapi.IN_QUERY,
                              type=openapi.TYPE_STRING)
 alert_type = openapi.Parameter('alert_type', openapi.IN_QUERY,
                              details="Alert type you want to filter by.",
-                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
 primary_threat_actor = openapi.Parameter('primary_threat_actor', openapi.IN_QUERY,
                              details="Primary Threat Actor you want to filter by.",
-                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
 impact = openapi.Parameter('impact', openapi.IN_QUERY,
                              details="Impact you want to filter by.",
-                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
 threat_level = openapi.Parameter('threat_level', openapi.IN_QUERY,
                              details="Threat Level you want to filter by.",
-                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
 affected_group = openapi.Parameter('affected_group', openapi.IN_QUERY,
                              details="Affected group you want to filter by.",
-                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
 incident_nature = openapi.Parameter('incident_nature', openapi.IN_QUERY,
                              details="Incident nature you want to filter by.",
-                             type=openapi.TYPE_ARRAY, items=openapi.TYPE_STRING)
+                             type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
 # incident_nature = openapi.Parameter('incident nature', openapi.IN_QUERY,
 #                              details="Incident nature you want to filter by.",
 #                              type=openapi.TYPE_STRING)
@@ -56,7 +56,7 @@ class IncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group])
+    @swagger_auto_schema(manual_parameters=[state])#, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group])
     def get(self, request):
 
         search = request.GET.get('search', None)

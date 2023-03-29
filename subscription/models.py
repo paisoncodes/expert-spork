@@ -49,6 +49,7 @@ class Subscription(models.Model):
     number_of_users = models.IntegerField(default=1)
     amount = models.IntegerField(default=0)
     duration = models.IntegerField(default=1)
+    start_date =  models.DateTimeField(null=True)
     expiry_date =  models.DateTimeField(null=True)
     payment_status = models.CharField(max_length=50, choices=PAYMENT_STATUSES, default=EMPTY)
     status = models.CharField(choices=STATUSES, max_length=50, default=ACTIVE)
@@ -77,8 +78,8 @@ class Invoice(models.Model):
         else:
             self.subscription.payment_status=INVOICE
         if self.subscription:
-            self.date_to= self.subscription.expiry_date
-            self.date_from = self.date_to - timedelta(days=(self.subscription.duration*30))
+            self.date_from= self.subscription.start_date
+            self.subscription.expiry_date = self.date_to = self.date_from + timedelta(days=(self.subscription.duration*30))
             self.amount=self.subscription.amount
             self.number_of_users = self.subscription.number_of_users
         else:
