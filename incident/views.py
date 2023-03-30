@@ -14,6 +14,8 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.db.models import Q
 
+YES = "YES"
+NO = "NO"
 
 state = openapi.Parameter('state', openapi.IN_QUERY,
                              details="State you want to filter by.",
@@ -21,6 +23,12 @@ state = openapi.Parameter('state', openapi.IN_QUERY,
 lga = openapi.Parameter('lga', openapi.IN_QUERY,
                              details="Lga you want to filter by.",
                              type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
+admin_approved = openapi.Parameter('Admin Approved', openapi.IN_QUERY,
+                             details=f"{YES}/{NO}",
+                             type=openapi.TYPE_STRING)
+company_approved = openapi.Parameter('Company Approved', openapi.IN_QUERY,
+                             details=f"{YES}/{NO}",
+                             type=openapi.TYPE_STRING)
 search = openapi.Parameter('search', openapi.IN_QUERY,
                              details="Parameter you want to filter by.",
                              type=openapi.TYPE_STRING)
@@ -59,7 +67,7 @@ class IncidentView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentSerializer
 
-    @swagger_auto_schema(manual_parameters=[state])#, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group, company_approved, admin_approved])
     def get(self, request):
 
         search = request.GET.get('search', None)
@@ -73,11 +81,17 @@ class IncidentView(GenericAPIView):
         affected_group = request.GET.get('affected_group', None)
         # city = request.GET.get('city', None)  
         lga = request.GET.get('lga', None)
+        company_approved = request.GET.get('company_approved', None)
+        admin_approved = request.GET.get('admin_approved', None)
 
         query = {"owner": request.user}
 
         if search:
             query["details__icontains"]=search
+        if company_approved:
+            query["company_approved"]= True if company_approved.upper() == YES else False
+        if admin_approved:
+            query["company_approved"]= True if admin_approved.upper() == YES else False
         if date:
             query["date"]=date
         if alert_type:
@@ -145,7 +159,7 @@ class CompanyIncidents(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentViewSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group, company_name])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group, company_name, company_approved, admin_approved])
     def get(self, request):
         search = request.GET.get('search', None)
         date = request.GET.get('date', None)
@@ -159,6 +173,8 @@ class CompanyIncidents(GenericAPIView):
         # city = request.GET.get('city', None)  
         lga = request.GET.get('lga', None)
         company_name = request.GET.get('company_name', None)
+        admin_approved = request.GET.get('admin_approved', None)
+        company_approved = request.GET.get('company_approved', None)
 
         query = {}
         if request.user.is_superuser:
@@ -166,12 +182,20 @@ class CompanyIncidents(GenericAPIView):
                 return api_response("Invalid company name", {}, False, 400)
             company_users = CompanyUser.objects.filter(company__name=company_name).values_list('user__id', flat=True)
             query["owner__id__in"] = company_users
+            if company_approved:
+                query["company_approved"]= True if company_approved.upper() == YES else False
+            if admin_approved:
+                query["company_approved"]= True if admin_approved.upper() == YES else False
         else:
             user_company = CompanyUser.objects.get(user=request.user)
 
             company_users = CompanyUser.objects.filter(company=user_company.company).values_list('user__id', flat=True)
             if user_company.is_company_admin == True:
                 query["owner__id__in"] = company_users
+                if company_approved:
+                    query["company_approved"]= True if company_approved.upper() == YES else False
+                if admin_approved:
+                    query["company_approved"]= True if admin_approved.upper() == YES else False
             else:
                 query["owner__id__in"] = company_users
                 query["company_approved"] = True
