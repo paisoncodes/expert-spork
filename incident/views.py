@@ -27,6 +27,9 @@ search = openapi.Parameter('search', openapi.IN_QUERY,
 date = openapi.Parameter('date', openapi.IN_QUERY,
                              details="Date you want to filter by.",
                              type=openapi.TYPE_STRING)
+company_name = openapi.Parameter('company_name', openapi.IN_QUERY,
+                             details="Company you want to filter by.",
+                             type=openapi.TYPE_STRING)
 alert_type = openapi.Parameter('alert_type', openapi.IN_QUERY,
                              details="Alert type you want to filter by.",
                              type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
@@ -142,7 +145,7 @@ class CompanyIncidents(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = IncidentViewSerializer
 
-    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group])
+    @swagger_auto_schema(manual_parameters=[state, lga, search, date, incident_nature, alert_type, primary_threat_actor, impact, threat_level, affected_group, company_name])
     def get(self, request):
         search = request.GET.get('search', None)
         date = request.GET.get('date', None)
@@ -155,16 +158,23 @@ class CompanyIncidents(GenericAPIView):
         state = request.GET.get('state', None)
         # city = request.GET.get('city', None)  
         lga = request.GET.get('lga', None)
+        company_name = request.GET.get('company_name', None)
 
         query = {}
-        user_company = CompanyUser.objects.get(user=request.user)
-
-        company_users = CompanyUser.objects.filter(company=user_company.company).values_list('user__id', flat=True)
-        if user_company.is_company_admin == True:
+        if request.user.is_superuser:
+            if not company_name:
+                return api_response("Invalid company name", {}, False, 400)
+            company_users = CompanyUser.objects.filter(company__name=company_name).values_list('user__id', flat=True)
             query["owner__id__in"] = company_users
         else:
-            query["owner__id__in"] = company_users
-            query["company_approved"] = True
+            user_company = CompanyUser.objects.get(user=request.user)
+
+            company_users = CompanyUser.objects.filter(company=user_company.company).values_list('user__id', flat=True)
+            if user_company.is_company_admin == True:
+                query["owner__id__in"] = company_users
+            else:
+                query["owner__id__in"] = company_users
+                query["company_approved"] = True
         if search:
             query["details__icontains"]=search
         if date:
