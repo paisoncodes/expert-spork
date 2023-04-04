@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password, make_password
 
 from accounts_profile.models import CompanyProfile, CompanyUser, Location, UserProfile
-from accounts_profile.serializers import UserProfileSerializer
+from accounts_profile.serializers import CompanyUserSerializer, UserProfileSerializer
 from role.models import Role
 from role.serializers import RoleViewSerializer
 from .permissions import IsVerifiedAndActive
@@ -186,13 +186,32 @@ class AllCompaniesView(GenericAPIView):
         for company in companies:
             company_users = CompanyUser.objects.filter(company=company)
         
-            data["company_name"]: company.company_name
+            data["company_name"] = company.company_name
+            data["company_users"] = []
             for company_user in company_users:
                 user_profile = UserProfile.objects.filter(user__email=company_user.user.email).first()
                 user_data = (self.serializer_class(user_profile)).data
                 user_data["id"] = company_user.user.id
-                data[company.company_name]["users"].append(user_data)
-            return api_response("Users fetched", data, True, 200)
+                data["company_users"].append(user_data)
+        return api_response("Users fetched", data, True, 200)
+
+class AllCompanyAdminsView(GenericAPIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    serializer_class = CompanyUserSerializer
+
+    def get(self, request):
+        company_admins = CompanyUser.objects.filter(is_company_admin=True)
+        serializer = self.serializer_class(company_admins, many=True)
+        data = serializer.data
+        for datum in data:
+            profile = UserProfile.objects.get(user__id=datum["user"])
+            company = CompanyProfile.objects.get(id=datum["company"])
+            if profile.first_name and profile.last_name:
+                datum["name"] = profile.first_name + " " + profile.last_name
+            else:
+                datum["name"] = profile.user.email
+            datum["company_name"] = company.company_name
+        return api_response("Users fetched", data, True, 200)
 
 
 class AdminCompanyUserEditView(GenericAPIView):

@@ -1,4 +1,4 @@
-from accounts.views import AddUser, AdminCompanyUserEditView, AllCompaniesView, AllCustomersView, AllUsersView, CompanyUsersView
+from accounts.views import AddUser, AdminCompanyUserEditView, AllCompaniesView, AllCompanyAdminsView, AllCustomersView, AllUsersView, CompanyUsersView
 from accounts_profile.views import ChangeUserRoleView, CityView, KycUpdateView, LocationUpdateDeleteView, LocationView, Profile, CompanyProfileView, StateView
 
 from django.urls import path
@@ -13,6 +13,7 @@ urlpatterns = [
     path("admin/view-all-users/", AllUsersView.as_view()),
     path("admin/view-all-customers/", AllCustomersView.as_view()),
     path("admin/view-all-companies/", AllCompaniesView.as_view()),
+    path("admin/view-all-company-admins/", AllCompanyAdminsView.as_view()),
     path("edit-user/<str:user_id>/", AdminCompanyUserEditView.as_view()),
     path("user/kyc-update/", KycUpdateView.as_view()),
     path("cities/<str:state>/", CityView.as_view()),
