@@ -17,6 +17,7 @@ services:
     expose:
       - 5434
     command: -p 5434
+    restart: always
   security-alert-api:
     build: .
     command: gunicorn --bind 0.0.0.0:8000 config.wsgi --log-file -
