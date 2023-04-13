@@ -1,6 +1,6 @@
 from django.urls import path
 
-from subscription.views import InvoiceCreate, InvoiceRetrieveView, InvoiceView, PackageCreateView, PackageRetrieveUpdateView, PackageView, SubscriptionCreate, UserSubscriptionRetrieveView, SubscriptionView
+from subscription.views import AllSubscriptionsView, InvoiceCreate, InvoiceRetrieveView, InvoiceView, PackageCreateView, PackageRetrieveUpdateView, PackageView, SubscriptionCreate, UserSubscriptionRetrieveView, SubscriptionView
 
 
 urlpatterns = [
@@ -13,4 +13,5 @@ urlpatterns = [
     path("invoices/", InvoiceView.as_view()),
     path("invoices/create/", InvoiceCreate.as_view()),
     path("invoice/view/", InvoiceRetrieveView.as_view()),
+    path("subscription/view/all/", AllSubscriptionsView.as_view())
 ]

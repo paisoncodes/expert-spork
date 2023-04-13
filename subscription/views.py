@@ -12,6 +12,18 @@ from django.shortcuts import get_object_or_404
 
 
 
+class AllSubscriptionsView(GenericAPIView):
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
+    serializer_class = SubscriptionViewSerializer
+
+    def get(self, request):
+        if request.user.is_superuser:
+            subscriptions = Subscription.objects.all()
+        else:
+            return api_response("ERROR", {}, False, 400)
+        serializer = SubscriptionViewSerializer(subscriptions, many=True)
+        return api_response("Subscriptions fetched", serializer.data, True, 200)
+    
 class SubscriptionView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = SubscriptionViewSerializer
