@@ -58,7 +58,7 @@ class Subscription(models.Model):
         return f"{self.customer.email} Security Incident Alert Service Subscription"
 
 class Invoice(models.Model):
-    customer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    customer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True)
     amount = models.IntegerField(blank=True)
     paid = models.BooleanField(default=False)
@@ -72,6 +72,7 @@ class Invoice(models.Model):
     def save(self, *args, **kwargs) -> None:
         invoice_len = Invoice.objects.all().count()
         self.invoice_number = f"000{invoice_len}" if invoice_len < 10 else f"00{invoice_len}" if invoice_len < 100 else f"0{invoice_len}" if invoice_len < 1000 else invoice_len
+        self.customer = self.subscription.customer
         if self.payment_date:
             self.paid = True
             self.subscription.payment_status=PAID
@@ -79,7 +80,7 @@ class Invoice(models.Model):
             self.subscription.payment_status=INVOICE
         if self.subscription:
             self.date_from= self.subscription.start_date
-            self.subscription.expiry_date = self.date_to = self.date_from + timedelta(days=(self.subscription.duration*30))
+            self.date_to= self.subscription.expiry_date
             self.amount=self.subscription.amount
             self.number_of_users = self.subscription.number_of_users
         else:

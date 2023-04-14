@@ -29,12 +29,15 @@ from .otp import get_otp, verify_otp
 
 from utils.utils import api_response, generate_password, send_mail, send_message, validate_phone_number
 # from mail.sendinblue import send_email
+from drf_yasg.utils import swagger_auto_schema
+from utils.query_params import customer_id
 
 
 class CustomerSignUp(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
 
+    @swagger_auto_schema(operation_summary="Individual Customer Registration.")
     def post(self, request):
         data = request.data 
         serializer = self.serializer_class(data=request.data)
@@ -58,6 +61,7 @@ class CompanySignUp(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = CompanyRegistrationSerializer
 
+    @swagger_auto_schema(operation_summary="Company Registration.")
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -86,6 +90,7 @@ class AddUser(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = AddUserSerializer
 
+    @swagger_auto_schema(operation_summary="Add User.")
     def post(self, request):
         data = request.data
         company = CompanyProfile.objects.filter(user=request.user).first()
@@ -115,13 +120,14 @@ class CompanyUsersView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = UserProfileSerializer
 
+    @swagger_auto_schema(manual_parameters=[customer_id], operation_summary="View all users in a Company.")
     def get(self, request):
         if request.user.is_superuser:
-            company_name = request.GET.get('company_name', None)
-            if not company_name:
-                return api_response("ERROR", {'message': 'Invalid company name'}, False, 400)
+            company_id = request.GET.get('company_id', None)
+            if not company_id:
+                return api_response("ERROR", {'message': 'Invalid company id'}, False, 400)
             else:
-                company = get_object_or_404(CompanyProfile, company_name=company_name)
+                company = get_object_or_404(CompanyProfile, id=company_id)
         else:
             company = CompanyProfile.objects.filter(user=request.user).first()
         company_users = CompanyUser.objects.filter(company=company)
@@ -144,6 +150,7 @@ class AllUsersView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = UserProfileSerializer
 
+    @swagger_auto_schema(operation_summary="View all users in the system.")
     def get(self, request):
         users = User.objects.all()
         data = {"users": []}
@@ -162,6 +169,7 @@ class AllCustomersView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = UserProfileSerializer
 
+    @swagger_auto_schema(operation_summary="View all individual users in the system.")
     def get(self, request):
         users = User.objects.all().exclude(user_type=User.UserType.COMPANY)
         data = {'users': []}
@@ -180,6 +188,7 @@ class AllCompaniesView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = UserProfileSerializer
 
+    @swagger_auto_schema(operation_summary="View all companies and their users in the system.")
     def get(self, request):
         companies = CompanyProfile.objects.all()
         data = {'users': []}
@@ -199,6 +208,7 @@ class AllCompanyAdminsView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = CompanyUserSerializer
 
+    @swagger_auto_schema(operation_summary="View all company admins in the system")
     def get(self, request):
         company_admins = CompanyUser.objects.filter(is_company_admin=True)
         serializer = self.serializer_class(company_admins, many=True)
@@ -218,6 +228,7 @@ class AdminCompanyUserEditView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = UserProfileSerializer
 
+    @swagger_auto_schema(operation_summary="Update Users by Company/Super admin.")
     def put(self, request, user_id):
         if request.user.is_superuser == True:
             user = get_object_or_404(User, id=user_id)
@@ -238,6 +249,7 @@ class VerifyOtp(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = VerifyTokenSerializer
 
+    @swagger_auto_schema(operation_summary="Verify OTP.")
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -268,6 +280,7 @@ class ResendOtp(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = ResendTokenSerializer
 
+    @swagger_auto_schema(operation_summary="Resend OTP.")
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -302,6 +315,7 @@ class VerifyPhoneNumberOtp(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = VerifyPhoneOtpSerializer
 
+    @swagger_auto_schema(operation_summary="Verify Phone OTP.")
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -331,6 +345,7 @@ class SendPhoneNumberOtp(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = SendPhoneOtpSerializer
 
+    @swagger_auto_schema(operation_summary="Send Phone OTP.")
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if not serializer.is_valid():
@@ -360,6 +375,7 @@ class Login(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
 
+    @swagger_auto_schema(operation_summary="Login.")
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if not serializer.is_valid():
@@ -432,6 +448,7 @@ class ChangePassword(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = ChangePasswordSerializer
 
+    @swagger_auto_schema(operation_summary="Change Password.")
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if not serializer.is_valid():

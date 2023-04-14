@@ -10,12 +10,14 @@ from accounts.models import User
 from accounts.permissions import IsCompanyAdmin, IsVerifiedAndActive
 from role.models import Role
 from utils.utils import api_response
+from drf_yasg.utils import swagger_auto_schema
 
 
 class Profile(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = UserProfileSerializer
 
+    @swagger_auto_schema(operation_summary="View user profile.")
     def get(self, request):
         user = get_object_or_404(User, pk=request.user.pk)
         profile, created = UserProfile.objects.get_or_create(user=user)
@@ -25,6 +27,7 @@ class Profile(GenericAPIView):
         data["phone_verified"] = user.phone_verified
         return api_response("Profile fetched", data, True, 200)
 
+    @swagger_auto_schema(operation_summary="Update user profile.")
     def put(self, request):
         user = request.user
         profile, created = UserProfile.objects.get_or_create(user=user)
@@ -38,6 +41,7 @@ class KycUpdateView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = KycUpdateSerializer
 
+    @swagger_auto_schema(operation_summary="Add user KYC.")
     def put(self, request):
         user = request.user
         profile = get_object_or_404(UserProfile, user=user)
@@ -51,6 +55,7 @@ class CompanyProfileView(GenericAPIView):
     permission_classes = [IsCompanyAdmin, IsVerifiedAndActive]
     serializer_class = CompanyProfileSerializer
 
+    @swagger_auto_schema(operation_summary="View company profile.")
     def get(self, request):
         company_profile, created = CompanyProfile.objects.get_or_create(user=request.user)
         serializer = CompanyProfileViewSerializer(instance=company_profile)
@@ -58,6 +63,7 @@ class CompanyProfileView(GenericAPIView):
         data["no_of_users"] = CompanyUser.objects.filter(company=company_profile).count()
         return api_response("Company Profile Fetched", data, True, 200)
 
+    @swagger_auto_schema(operation_summary="Update company profile.")
     def put(self, request):
         user = get_object_or_404(User, pk=request.user.pk)
         company_profile, created = CompanyProfile.objects.get_or_create(user=user)
@@ -73,12 +79,14 @@ class LocationView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = LocationSerializer
 
+    @swagger_auto_schema(operation_summary="View user locations.")
     def get(self, request):
         user = request.user
         locations = Location.objects.filter(owner=user)
         serializer = LocationViewSerializer(locations, many=True)
         return api_response("Locations fetched", serializer.data, True, 200)
     
+    @swagger_auto_schema(operation_summary="Add user location.")
     def post(self, request):
         user = request.user
         data = request.data
@@ -96,6 +104,7 @@ class LocationUpdateDeleteView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = LocationSerializer
 
+    @swagger_auto_schema(operation_summary="View user location.")
     def put(self, request, location_id):
         user = request.user
         location = Location.objects.filter(owner=user, id=location_id)
@@ -105,6 +114,7 @@ class LocationUpdateDeleteView(GenericAPIView):
             return api_response("Locations fetched", serializer.data, True, 200)
         return api_response("ERROR", serializer.errors, False, 400)
     
+    @swagger_auto_schema(operation_summary="Update user location.")
     def delete(self, request, location_id):
         user = request.user
         location = Location.objects.filter(owner=user, id=location_id)
@@ -119,6 +129,7 @@ class CityView(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = CitySerializer
 
+    @swagger_auto_schema(operation_summary="View cities.")
     def get(self, request):
         state = request.GET.get('state')
         if not state:
@@ -131,6 +142,7 @@ class StateView(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = StateSerializer
 
+    @swagger_auto_schema(operation_summary="View states.")
     def get(self, request):
         states = State.objects.all()
         serializer = self.serializer_class(states, many=True)
@@ -141,6 +153,7 @@ class ChangeUserRoleView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = RoleUpdateSerializer
 
+    @swagger_auto_schema(operation_summary="Change user role.")
     def put(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         profile = get_object_or_404(UserProfile, user=user)

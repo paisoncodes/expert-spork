@@ -1,26 +1,26 @@
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from accounts.models import User
 from accounts.permissions import IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive
 from notifications.models import Notification
 from subscription.models import Invoice, Package, Subscription
 
-from subscription.serializers import InvoiceSerializer, InvoiceViewSerializer, PackageSerializer, SubscriptionSerializer, SubscriptionViewSerializer
+from subscription.serializers import InvoiceSerializer, InvoiceViewSerializer, SubscriptionSerializer, SubscriptionViewSerializer
 
 from utils.utils import api_response, send_mail
 from django.shortcuts import get_object_or_404
+from drf_yasg.utils import swagger_auto_schema
+from utils.query_params import customer_id
 
 
 
 class AllSubscriptionsView(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive, IsAdminUser]
     serializer_class = SubscriptionViewSerializer
 
+    @swagger_auto_schema(operation_summary="View all subscriptions.")
     def get(self, request):
-        if request.user.is_superuser:
-            subscriptions = Subscription.objects.all()
-        else:
-            return api_response("ERROR", {}, False, 400)
+        subscriptions = Subscription.objects.all()
         serializer = SubscriptionViewSerializer(subscriptions, many=True)
         return api_response("Subscriptions fetched", serializer.data, True, 200)
     
@@ -28,6 +28,7 @@ class SubscriptionView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = SubscriptionViewSerializer
 
+    @swagger_auto_schema(manual_parameters=[customer_id], operation_summary="View Customer subscriptions")
     def get(self, request):
         if request.user.is_superuser:
             customer_id = request.GET.get("customer_id", None)
@@ -41,9 +42,10 @@ class SubscriptionView(GenericAPIView):
 
 
 class SubscriptionCreate(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive, IsAdminUser]
     serializer_class = SubscriptionSerializer
 
+    @swagger_auto_schema(operation_summary="Create subscription.")
     def post(self, request):
         data = request.data
         serializer = self.serializer_class(data=data)
@@ -65,79 +67,72 @@ class UserSubscriptionRetrieveView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = SubscriptionViewSerializer
 
+    @swagger_auto_schema(operation_summary="View subscription.")
     def get(self, request, subscription_id):
-        if request.user.is_superuser:
-            customer_id = request.GET.get("customer_id", None)
-            if not customer_id:
-                return api_response("Invalid customer", {}, False, 400)
-            subscription = Subscription.objects.filter(id=subscription_id, customer__id=customer_id).first()
-        else:
-            subscription = Subscription.objects.filter(id=subscription_id, customer=request.user).first()
+        subscription = get_object_or_404(Subscription, id=subscription_id)
         serializer = self.serializer_class(subscription)
         return api_response("Subscription fetched", serializer.data, True, 200)
-
-
-class PackageView(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
-    serializer_class = PackageSerializer
-
-    def get(self, request):
-        packages = Package.objects.filter(owner=request.user)
-        serializer = self.serializer_class(packages, many=True)
-        data = serializer.data
-        if invoice:= Invoice.objects.filter(subscription__id=data["id"]):
-            data["invoice"] = InvoiceViewSerializer(invoice).data
-        return api_response("Packages fetched", data, True, 200)
     
-class PackageCreateView(GenericAPIView):
-    permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
-    serializer_class = PackageSerializer
+class UserSubscriptionUpdateView(GenericAPIView):
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive, IsAdminUser]
+    serializer_class = SubscriptionSerializer
 
-    def post(self, request):
-        data = request.data 
-        data["owner"] = request.user
-        serializer = self.serializer_class(data)
+    @swagger_auto_schema(operation_summary="Update subscription.")
+    def put(self, request, subscription_id):
+        subscription = get_object_or_404(Subscription, id=subscription_id)
+        serializer = self.serializer_class(request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
-            return api_response("Package created", serializer.data, True, 201)
+            serializer.update(instance=subscription, validated_data=serializer.validated_data)
+            return api_response("Subscription Updated", serializer.data, True, 202)
+        return api_response("ERROR", serializer.errors, False, 400)
 
-class PackageRetrieveUpdateView(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
-    serializer_class = PackageSerializer
 
-    def get(self, request, package_id):
-        package = get_object_or_404(Package, id=package_id)
-        serializer = self.serializer_class(package)
-        return api_response("Package fetched", serializer.data, True, 200)
+# class PackageView(GenericAPIView):
+#     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
+#     serializer_class = PackageSerializer
 
-    def put(self, request, package_id):
-        package, created = Package.objects.get_or_create(owner=request.user, id=package_id)
-        serializer = self.serializer_class(data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.update(instance=package, validated_data=serializer.validated_data)
-            return api_response("Package saved", serializer.data, True, 202)
-        return api_response(serializer.errors, {}, False, 400)
+#     def get(self, request):
+#         packages = Package.objects.filter(owner=request.user)
+#         serializer = self.serializer_class(packages, many=True)
+#         data = serializer.data
+#         if invoice:= Invoice.objects.filter(subscription__id=data["id"]):
+#             data["invoice"] = InvoiceViewSerializer(invoice).data
+#         return api_response("Packages fetched", data, True, 200)
+    
+# class PackageCreateView(GenericAPIView):
+#     permission_classes = [IsCompanyAdminOrBaseAdmin, IsVerifiedAndActive]
+#     serializer_class = PackageSerializer
 
-class InvoiceView(GenericAPIView):
-    permission_classes = [IsAuthenticated, IsVerifiedAndActive]
-    serializer_class = InvoiceViewSerializer
+#     def post(self, request):
+#         data = request.data 
+#         data["owner"] = request.user
+#         serializer = self.serializer_class(data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return api_response("Package created", serializer.data, True, 201)
 
-    def get(self, request):
-        if request.user.is_superuser:
-            customer_id = request.GET.get("customer_id", None)
-            if not customer_id:
-                return api_response("Invalid customer", {}, False, 400)
-            invoices = Invoice.objects.filter(customer__id=customer_id)
-        else:
-            invoices=Invoice.objects.filter(customer=request.user)
+# class PackageRetrieveUpdateView(GenericAPIView):
+#     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
+#     serializer_class = PackageSerializer
 
-        serializer = self.serializer_class(invoices, many=True)
-        return api_response("Invoices fetched", serializer.data, True, 200)
+#     def get(self, request, package_id):
+#         package = get_object_or_404(Package, id=package_id)
+#         serializer = self.serializer_class(package)
+#         return api_response("Package fetched", serializer.data, True, 200)
+
+#     def put(self, request, package_id):
+#         package, created = Package.objects.get_or_create(owner=request.user, id=package_id)
+#         serializer = self.serializer_class(data=request.data, partial=True)
+#         if serializer.is_valid():
+#             serializer.update(instance=package, validated_data=serializer.validated_data)
+#             return api_response("Package saved", serializer.data, True, 202)
+#         return api_response(serializer.errors, {}, False, 400)
     
 class InvoiceCreate(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = InvoiceSerializer
     
+    @swagger_auto_schema(operation_summary="Create invoice.")
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -150,13 +145,21 @@ class InvoiceRetrieveView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsVerifiedAndActive]
     serializer_class = InvoiceViewSerializer
 
-    def get(self, request, invoice_id):
-        if request.user.is_superuser:
-            customer_id = request.GET.get("customer_id", None)
-            if not customer_id:
-                return api_response("Invalid customer", {}, False, 400)
-            invoice = Invoice.objects.filter(id=invoice_id, customer__id=customer_id).first()
-        else:
-            invoice = Invoice.objects.filter(id=invoice_id, customer=request.user).first()
+    @swagger_auto_schema(operation_summary="View invoice.")
+    def get(self, request, subscription_id):
+        invoice = get_object_or_404(Invoice, subscription__id=subscription_id)
         serializer = self.serializer_class(invoice)
-        return api_response("Invoice fetched", serializer.data, True, 200)
+        return api_response("Invoices fetched", serializer.data, True, 200)
+
+class InvoiceUpdateView(GenericAPIView):
+    permission_classes = [IsAuthenticated, IsVerifiedAndActive, IsAdminUser]
+    serializer_class = InvoiceViewSerializer
+
+    @swagger_auto_schema(operation_summary="Update invoice.")
+    def put(self, request, invoice_id):
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        serializer = self.serializer_class(request.data, partial=True)
+        if serializer.is_valid():
+            serializer.update(instance=invoice, validated_data=serializer.validated_data)
+            return api_response("Invoice Updated", serializer.data, True, 202)
+        return api_response("ERROR", serializer.errors, False, 400)

@@ -13,7 +13,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             "id",
             "payment_status",
             "status",
-            "expiry_date",
         ]
 class SubscriptionViewSerializer(serializers.ModelSerializer):
     alert_type = serializers.StringRelatedField(many=True)
@@ -31,7 +30,6 @@ class SubscriptionViewSerializer(serializers.ModelSerializer):
             "id",
             "payment_status",
             "status",
-            "expiry_date",
         ]
 
 class PackageSerializer(serializers.ModelSerializer):
@@ -56,6 +54,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
             "amount",
             "number_of_users",
             "invoice_number",
+            "customer",
         ]
 class InvoiceViewSerializer(serializers.ModelSerializer):
     customer = serializers.StringRelatedField()
@@ -72,4 +71,6 @@ class InvoiceViewSerializer(serializers.ModelSerializer):
             "amount",
             "number_of_users",
             "invoice_number",
+            "customer",
+            "subscription",
         ]

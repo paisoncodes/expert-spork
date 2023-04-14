@@ -48,3 +48,6 @@ incident_nature = openapi.Parameter('incident_nature', openapi.IN_QUERY,
 ticket_id = openapi.Parameter('ticket_id', openapi.IN_QUERY,
                              details="ID of ticket you want to retrieve replies for.",
                              type=openapi.TYPE_STRING, required=True)
+customer_id = openapi.Parameter('customer_id', openapi.IN_QUERY,
+                             details="ID of customer/company.",
+                             type=openapi.TYPE_STRING)

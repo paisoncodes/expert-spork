@@ -9,6 +9,7 @@ from role.serializers import RolePermisionSerializer, RoleSerializer, RoleViewSe
 
 from utils.utils import api_response
 from django.shortcuts import get_object_or_404
+from drf_yasg.utils import swagger_auto_schema
 
 
 
@@ -16,11 +17,13 @@ class RoleView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = RoleSerializer
 
+    @swagger_auto_schema(operation_summary="View roles.")
     def get(self, request):
         roles = Role.objects.all()
         serializer = RoleViewSerializer(roles, many=True)
         return api_response("Roles fetched", serializer.data, True, 200)
     
+    @swagger_auto_schema(operation_summary="Creae role.")
     def post(self, request):
        data = request.data
        if role:= Role.objects.filter(name__iexact=data["name"]).first():
@@ -40,12 +43,13 @@ class RoleRetrieveUpdateDeleteView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = RoleSerializer
 
+    @swagger_auto_schema(operation_summary="View role.")
     def get(self, request, role_id):
         role = get_object_or_404(Role, id=role_id)
         serializer = self.serializer_class(role)
         return api_response("Role retrieved", serializer.data, True, 200)
 
-
+    @swagger_auto_schema(operation_summary="Update role.")
     def put(self, request, role_id):
         role = get_object_or_404(Role, id=role_id)
         serializer = self.serializer_class(request.data, partial=True)
@@ -55,6 +59,7 @@ class RoleRetrieveUpdateDeleteView(GenericAPIView):
             return api_response("Role updated", serializer.data, True, 202)
         return api_response("ERROR", serializer.errors, False, 400)
     
+    @swagger_auto_schema(operation_summary="Delete role.")
     def delete(self, request, role_id):
         if role:= Role.objects.filter(id=role_id).first():
             role.delete()
@@ -65,11 +70,13 @@ class RolePermissionsView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = RolePermisionSerializer
 
+    @swagger_auto_schema(operation_summary="View permissions.")
     def get(self, request):
         permissions = RolePermission.objects.all()
         serializer = self.serializer_class(permissions, many=True)
         return api_response("Permissions fetched", serializer.data, True, 200)
     
+    @swagger_auto_schema(operation_summary="Create permission.")
     def post(self, request):
         data = request.data
         if permission:= RolePermission.objects.filter(name__iexact=data["name"]).first():
@@ -87,6 +94,8 @@ class RolePermissionsView(GenericAPIView):
 class UserRoleAndPermissionsView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsAdminUser)
     serializer_class = RoleViewSerializer
+
+    @swagger_auto_schema(operation_summary="View user roles and permissions.")
     def get(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         user_profile = get_object_or_404(UserProfile, user=user)
@@ -97,12 +106,13 @@ class RolePermissionRetrieveUpdateDeleteView(GenericAPIView):
     permission_classes = (IsAuthenticated, IsVerifiedAndActive)
     serializer_class = RolePermisionSerializer
 
+    @swagger_auto_schema(operation_summary="View permission.")
     def get(self, request, permission_id):
         permission = get_object_or_404(RolePermission, id=permission_id)
         serializer = self.serializer_class(permission)
         return api_response("Permission retrieved", serializer.data, True, 200)
 
-
+    @swagger_auto_schema(operation_summary="Update permission.")
     def put(self, request, permission_id):
         permission = get_object_or_404(RolePermission, id=permission_id)
         serializer = self.serializer_class(request.data, partial=True)
@@ -112,6 +122,7 @@ class RolePermissionRetrieveUpdateDeleteView(GenericAPIView):
             return api_response("Permission updated", serializer.data, True, 202)
         return api_response("ERROR", serializer.errors, False, 400)
     
+    @swagger_auto_schema(operation_summary="Delete permission.")
     def delete(self, request, permission_id):
         if permission:= RolePermission.objects.filter(id=permission_id).first():
             permission.delete()
